@@ -1,6 +1,5 @@
 """
 Class used for file I/O
-@param none
 """
 
 

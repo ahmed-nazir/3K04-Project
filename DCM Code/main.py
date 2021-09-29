@@ -1,10 +1,10 @@
 import tkinter
 import tkinter as tk
 from tkinter import *
+from tkinter import messagebox
 
 """
     The Run class is used to start the program
-    @param none
 """
 
 
@@ -15,14 +15,14 @@ class Run:
     """
 
     def __init__(self):
+        root = tk.Tk()
         # The login window object is created
-        ContentWindow()
-        ContentWindow.__root.mainloop()
-
+        cw=ContentWindow(root)
+        cw.mainloop()
 
 """
     The LoginWindow class is the the inital interface in viewing the program
-    @param tk.Frame  
+    Extends tk.Frame  
 """
 
 
@@ -58,8 +58,9 @@ class LoginWindow(tk.Frame):
     """
 
     def __init__(self, mainWindow):
+        tk.Frame.__init__(self,mainWindow)
         self.__mainWindow = mainWindow
-        self.__root = mainWindow.getRoot()
+        self.__root = mainWindow
         # Initialize components of frame
         self.__initializeEntryFields()
         self.__initializeButtons()
@@ -67,8 +68,6 @@ class LoginWindow(tk.Frame):
         self.__contentPane = Frame(self.__root, bg="red")
         self.__contentPane.pack(anchor=tkinter.CENTER)
         # Initialize frame properties
-        self.__root.title("DCM")
-        self.__root.geometry("500x450")
         self.__root.config(bg=self.BACKGROUND_COLOR)
 
     """
@@ -151,32 +150,31 @@ class RegisterWindow(tk.Frame):
 
 """
 The ContentWindow stores all the visual components of the DCM
-@param tk.Tk
+Extends tk.Tk
 """
 
 
-class ContentWindow(tk.Tk):
+class ContentWindow(tk.Frame):
     # Variables
-    __root = Tk()
     loginWindow = None
     """
          Object Constructor
          @param self
     """
 
-    def __init__(self):
-        self.__root.title("DCM")
-        self.__root.geometry("500x450")
-        self.__root.config(bg='#0059b3')
-        loginWindow = LoginWindow(self)
-        loginWindow.getRoot().mainloop()
-        self.__root.pack()
+    def __init__(self,parent):
+        tk.Frame.__init__(self,parent)
+        parent.title("DCM")
+        parent.geometry("500x450")
+        parent.config(bg='#0059b3')
 
-    def getRoot(self):
-        return self.__root
+        loginWindow = LoginWindow(self)
 
     def login(self):
         pass
+
+
+
 
 # Main script
 if __name__ == "__main__":
