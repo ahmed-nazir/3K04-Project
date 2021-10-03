@@ -1,7 +1,8 @@
 """
 Class used for file I/O
 """
-
+import json
+import os
 
 class FileIO:
     # Variable Declaration
@@ -20,11 +21,28 @@ class FileIO:
     def __init__(self, fileName, mode):
         self.__fileName = fileName
         self.__mode = mode
-    """
+    
     def writeText(self,text):
+        if os.path.isfile(self._fileName):
+            #print("The File exists")
+            if self.getlength() < 10:
+                with open(self.fileName,"a")as f:
+                    f.write(json.dumps(text)+'\n')
+            else:
+                print("maximum users reached")
+        else:
+            with open(self.fileName,"w") as f :
+                f.write(json.dumps(text)+'\n')
+            
 
     def readText(self):
-    """
+        lists=[]
+        with open(self._filName,"r") as f:
+            for items in f:
+                userdict=json.loads(items)
+                lists.append(userdict)
+        print(lists)
+    
     # Setter functions
     def setMode(self, mode):
         self.__mode = mode
@@ -38,3 +56,11 @@ class FileIO:
 
     def getFileName(self):
         return self.__fileName
+    
+    def getlength(self):
+        lists=[]
+        with open(self._filName,"r") as f:
+            for items in f:
+                userdict=json.loads(items)
+                lists.append(userdict)
+            return len(lists)
