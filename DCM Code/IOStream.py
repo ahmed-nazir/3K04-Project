@@ -23,21 +23,21 @@ class FileIO:
         self.__mode = mode
     
     def writeText(self,text):
-        if os.path.isfile(self._fileName):
+        if os.path.isfile(self.__fileName):
             #print("The File exists")
             if self.getlength() < 10:
-                with open(self._fileName,"a")as f:
+                with open(self.__fileName,"a")as f:
                     f.write(json.dumps(text)+'\n')
             else:
                 print("maximum users reached")
         else:
-            with open(self._fileName,"w") as f :
+            with open(self.__fileName,"w") as f :
                 f.write(json.dumps(text)+'\n')
             
 
     def readText(self):
         lists=[]
-        with open(self._filName,"r") as f:
+        with open(self.__filName,"r") as f:
             for items in f:
                 userdict=json.loads(items)
                 lists.append(userdict)
@@ -59,7 +59,7 @@ class FileIO:
     
     def getlength(self):
         lists=[]
-        with open(self._filName,"r") as f:
+        with open(self.__filName,"r") as f:
             for items in f:
                 userdict=json.loads(items)
                 lists.append(userdict)
