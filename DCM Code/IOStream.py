@@ -26,22 +26,22 @@ class FileIO:
         if os.path.isfile(self.__fileName):
             #print("The File exists")
             if self.getlength() < 10:
-                with open(self.__fileName,"a")as f:
-                    f.write(json.dumps(text)+'\n')
+                with open(self.__fileName,"r")as f:
+                    data=json.load(f)
+                data.update(text)
+                with open(self.__fileName,"w")as f:
+                    f.write(json.dumps(data))
             else:
                 print("maximum users reached")
         else:
             with open(self.__fileName,"w") as f :
-                f.write(json.dumps(text)+'\n')
+                f.write(json.dumps(text))
             
 
     def readText(self):
-        lists=[]
-        with open(self.__filName,"r") as f:
-            for items in f:
-                userdict=json.loads(items)
-                lists.append(userdict)
-        return(lists)
+        with open(self.__fileName,"r") as f:
+            data=json.load(f)
+        return data
     
     # Setter functions
     def setMode(self, mode):
@@ -58,9 +58,6 @@ class FileIO:
         return self.__fileName
     
     def getlength(self):
-        lists=[]
-        with open(self.__filName,"r") as f:
-            for items in f:
-                userdict=json.loads(items)
-                lists.append(userdict)
-            return len(lists)
+        with open(self.__fileName,"r") as f :
+            data=json.load(f)
+        return len(data)
