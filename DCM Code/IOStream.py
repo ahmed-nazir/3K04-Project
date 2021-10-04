@@ -41,7 +41,7 @@ class FileIO:
             for items in f:
                 userdict=json.loads(items)
                 lists.append(userdict)
-        print(lists)
+        return(lists)
     
     # Setter functions
     def setMode(self, mode):
