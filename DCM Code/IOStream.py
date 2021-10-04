@@ -39,9 +39,12 @@ class FileIO:
             
 
     def readText(self):
-        with open(self.__fileName,"r") as f:
-            data=json.load(f)
-        return data
+        try:
+            with open(self.__fileName,"r") as f:
+                data=json.load(f)
+            return data
+        except:
+            print("The file is empty")
     
     # Setter functions
     def setMode(self, mode):
