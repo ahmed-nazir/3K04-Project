@@ -26,12 +26,12 @@ class FileIO:
         if os.path.isfile(self._fileName):
             #print("The File exists")
             if self.getlength() < 10:
-                with open(self.fileName,"a")as f:
+                with open(self._fileName,"a")as f:
                     f.write(json.dumps(text)+'\n')
             else:
                 print("maximum users reached")
         else:
-            with open(self.fileName,"w") as f :
+            with open(self._fileName,"w") as f :
                 f.write(json.dumps(text)+'\n')
             
 
