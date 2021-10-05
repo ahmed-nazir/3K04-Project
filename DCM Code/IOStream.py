@@ -25,14 +25,11 @@ class FileIO:
     def writeText(self,text):
         if os.path.isfile(self.__fileName):
             #print("The File exists")
-            if self.getlength() < 10:
-                with open(self.__fileName,"r")as f:
-                    data=json.load(f)
-                data.update(text)
-                with open(self.__fileName,"w")as f:
-                    f.write(json.dumps(data))
-            else:
-                print("maximum users reached")
+            with open(self.__fileName,"r")as f:
+                data=json.load(f)
+            data.update(text)
+            with open(self.__fileName,"w")as f:
+                f.write(json.dumps(data))
         else:
             with open(self.__fileName,"w") as f :
                 f.write(json.dumps(text))
