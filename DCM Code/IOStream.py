@@ -26,8 +26,13 @@ class FileIO:
         if os.path.isfile(self.__fileName):
             #print("The File exists")
             with open(self.__fileName,"r")as f:
-                data=json.load(f)
-            data.update(text)
+                data = self.readText()
+                if not data:
+                    data=text
+                try:
+                    data.update(text)
+                except Exception:
+                    pass
             with open(self.__fileName,"w")as f:
                 f.write(json.dumps(data))
         else:
@@ -42,6 +47,7 @@ class FileIO:
             return data
         except:
             print("The file is empty")
+            return None
     
     # Setter functions
     def setMode(self, mode):

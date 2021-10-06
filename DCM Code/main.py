@@ -3,6 +3,8 @@ import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
 
+from IOStream import FileIO
+
 """
     The Run class is used to start the program
 """
@@ -173,9 +175,11 @@ class ContentWindow(tk.Frame):
     def login(self):
         pass
 
-
-
-
 # Main script
 if __name__ == "__main__":
-    run = Run()
+    #run = Run()
+    io = FileIO("password.txt",'w')
+    Dict = {"Hello":"World"}
+    print(type(Dict))
+    io.writeText(Dict)
+    print(type(io.readText()))
