@@ -18,9 +18,8 @@ class FileIO:
         @param mode char: Specifies if the file is in read(r) or write(w) mode
     """
 
-    def __init__(self, fileName, mode):
+    def __init__(self, fileName):
         self.__fileName = fileName
-        self.__mode = mode
     
     def writeText(self,text):
         if os.path.isfile(self.__fileName):
@@ -50,20 +49,13 @@ class FileIO:
             return None
     
     # Setter functions
-    def setMode(self, mode):
-        self.__mode = mode
-
     def setFileName(self, fileName):
         self.__fileName = fileName
 
     # Getter functions
-    def getMode(self):
-        return self.__mode
-
     def getFileName(self):
         return self.__fileName
     
     def getlength(self):
-        with open(self.__fileName,"r") as f :
-            data=json.load(f)
+        data = self.readText()
         return len(data)
