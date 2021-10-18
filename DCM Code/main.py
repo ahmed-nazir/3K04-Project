@@ -123,7 +123,26 @@ class LoginWindow(tk.Frame):
 
         if(1):
             self.__mainWindow.login()
-        """
+
+    def CheckPass(self):
+        alt=FileIO(__filename,"r")
+        f=alt.readText()
+        if __username in f:
+            #print("user registered")
+            if __password==f[__username]:
+                #print("Login succeed")
+                return True
+            else:
+                #print("wrong password")
+                return False
+        else:
+            #print("user not registered")
+            return False
+        
+            
+        
+
+    """
         Function opens a frame to add new credentials if applicable
         @param self
     """
