@@ -217,20 +217,24 @@ class DCMWindow(tk.Frame):
     # Constants
     PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Atrial Pulsewidth","Atrial Refractory Period","Ventricular Amplitude","Ventricular Pulsewidth","Ventricular Refractory Period"]
     MODELABELS = {"AOO", "VOO", "AAI", "VVI" }
-
+    #The following variable is a placeholder before serial communication is implemented
+    SERIALCOMMODE = {"COM8","COM9"}
     # Padding is in PX
     PADDING = 20
     # Private Variables
     __buttonArr=[]
     __entryArr=[]
     __modeList = None
-    __tkVar = None
-    
+    __currentMode = None
+    __currentPort = None
+
+    __saveButton = None
+    __comMode = None
+
     """
         Constructor
         @param mainWindow
     """
-
 
     def __init__(self, mainWindow):
         tk.Frame.__init__(self,mainWindow,bg="blue",width=1280,height=600)
@@ -243,16 +247,25 @@ class DCMWindow(tk.Frame):
         self.__leftFrame.grid(row=0,column=0)
         self.__rightFrame.grid(row=0,column=1)
 
+
         topRight= Frame(self.__rightFrame,bg='blue',width=640,height=275)
         bottomRight = Frame(self.__rightFrame, bg='blue', width=640, height=275)
         topRight.pack()
         bottomRight.pack()
-        self.__tkVar=StringVar(self)
-        self.__modeList = OptionMenu(topRight,self.__tkVar,* self.MODELABELS)
-        self.__modeList.pack()
+        self.__saveButton= Button(topRight,text="Save Mode",command="", relief="flat",padx=20)
+        self.__saveButton.grid(row=0,column=1,padx=20,pady=20)
+        self.__currentMode=StringVar(self)
+        self.__currentPort = StringVar(self)
+
+        self.__modeList = OptionMenu(topRight,self.__currentMode,* self.MODELABELS)
+        self.__modeList.grid(row=0,column=0,padx=20,pady=20)
         self.__graphWindow = GraphWindow(self.__leftFrame)
         self.__graphWindow.pack()
+
+        self.__comMode=OptionMenu(self.__topFrame,self.__currentPort,* self.SERIALCOMMODE)
+        self.__comMode.pack(fill=Y)
         self.initalizeButtonList(bottomRight)
+
     def initalizeButtonList(self,higherFrame):
         for i in range(0,8,2):
             for j in range(2):
@@ -285,7 +298,7 @@ class ContentWindow(tk.Frame):
         tk.Frame.__init__(self,parent)
         self.parent=parent
         parent.title("DCM")
-        parent.geometry("1200x600")
+        parent.geometry("1280x600")
         parent.config(bg='#0059b3')
         self.loginWindow = LoginWindow(self)
         self.loginWindow.pack(anchor="s")
