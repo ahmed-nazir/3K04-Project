@@ -1,4 +1,3 @@
-import tkinter
 import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
@@ -6,6 +5,9 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
 NavigationToolbar2Tk)
 from IOStream import FileIO
+
+# Global Variables
+username = ""
 
 """
     The Run class is used to start the program
@@ -20,6 +22,7 @@ class Run:
 
     def __init__(self):
         root = tk.Tk()
+        root.bind("<KeyPress>",key_pressed)
         # The login window object is created
         cw=ContentWindow(root)
         cw.pack()
@@ -39,7 +42,7 @@ class LoginWindow(tk.Frame):
     FONT = ("Arial", 12)
     DEFAULT_USERNAME_TEXT = "Username"
     DEFAULT_PASSWORD_TEXT = "Password"
-    DEFAULT_SUBMIT_BUTTON_TEXT = "Submit"
+    DEFAULT_login_BUTTON_TEXT = "Login"
     DEFAULT_REGISTER_BUTTON_TEXT = "Register"
     PADDING = 10
     BACKGROUND_COLOR = "#0059b3"
@@ -50,7 +53,7 @@ class LoginWindow(tk.Frame):
     __mainWindow = None
     __usernameField = None
     __passwordField = None
-    __submitButton = None
+    __loginButton = None
     __registerButton = None
     __password = "Password"
     __username = "Username"
@@ -94,7 +97,7 @@ class LoginWindow(tk.Frame):
 
     def __initializeButtons(self):
         self.__buttonFrame = Frame(self, bg="red")
-        self.__submitButton = Button(self.__buttonFrame, text=self.DEFAULT_SUBMIT_BUTTON_TEXT, command=self.getText,
+        self.__loginButton = Button(self.__buttonFrame, text=self.DEFAULT_login_BUTTON_TEXT, command=self.getText,
                                    relief="flat")
                                    
         self.__submitButton.grid(row=0, column=0, padx=5, pady=10)
@@ -107,7 +110,7 @@ class LoginWindow(tk.Frame):
         self.__buttonFrame.pack()
 
     """
-        Function is called when the submit button is pressed, validates the password to the stored file and 
+        Function is called when the login button is pressed, validates the password to the stored file and 
         will enter the DCM window if successful
         @param self
     """
@@ -123,9 +126,7 @@ class LoginWindow(tk.Frame):
         # will remove the password screen and add the main program
         # --Note: figure out a way to only remove content pane instead of removing all elements in content pane
         self.CheckPass()
-        #if(1):
-         #   self.__mainWindow.login()
-
+    
     def CheckPass(self):
         alt=FileIO(self.PASSWORDFILE)
         f=alt.readText()
@@ -137,7 +138,7 @@ class LoginWindow(tk.Frame):
             else:
                 messagebox.askretrycancel("User Validation","Wrong password,try again?")
         else:
-            messagebox.askyesno("User Validation","User not registered, do you want to register")
+            messagebox.askyesno("User Validation","User not registered, do you want to register?")
             self.registerUser()
 
             
@@ -219,30 +220,98 @@ class GraphWindow(tk.Frame):
             canvas.get_tk_widget().pack()
 
 class DCMWindow(tk.Frame):
+    # Constants
+    PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Atrial Pulsewidth","Atrial Refractory Period","Ventricular Amplitude","Ventricular Pulsewidth","Ventricular Refractory Period"]
+    MODELABELS = {"AOO", "VOO", "AAI", "VVI"}
+    #The following variable is a placeholder before serial communication is implemented
+    SERIALCOMMODE = {"COM8","COM9"}
+    # Padding is in PX
+    PADDING = 20
+    # Private Variables
+    __mainWindow = None
     __buttonArr=[]
     __entryArr=[]
+    __modeList = None
+    __currentMode = None
+    __currentPort = None
+    __saveButton = None
+    __comMode = None
+    __usernameLabel = None
+    __logoutButton = None
+    __comButton= None
+    __consoleLog = None
+    """
+        Constructor
+        @param mainWindow
+    """
+
     def __init__(self, mainWindow):
-        tk.Frame.__init__(self,mainWindow,bg="blue",width="1280",height="600")
-        self.__topFrame= Frame(self,bg='blue',width=1280,height=50)
-        self.__centerFrame = Frame(self,bg='blue',width=1280,height=550)
-        self.__leftFrame = Frame(self.__centerFrame,bg='blue',width=640,height=550)
-        self.__rightFrame = Frame(self.__centerFrame,bg='blue',width=640,height=550)
-        self.__topFrame.pack()
+        tk.Frame.__init__(self,mainWindow,bg="#0059b3",width=1280,height=600)
+        self.__mainWindow = mainWindow
+        self.__mainWindow.focus_set()
+        self.__currentMode=StringVar(self)
+        self.__currentPort = StringVar(self)
+        self.initalizeTopFrame()
+        self.__centerFrame = Frame(self,bg='#0059b3',width=1280,height=550)
         self.__centerFrame.pack()
+        self.initalizeLeftFrame()
+        self.initalizeRightFrame()
+        self.initalizeBottomFrame()
+
+    def initalizeTopFrame(self):
+        self.__topFrame = Frame(self, bg='#0059b3', width=1280, height=50)
+
+        self.__usernameLabel = Label(self.__topFrame,text="User: "+username)
+        self.__usernameLabel.grid(row=0,column=0,padx=230)
+
+        self.__comMode = OptionMenu(self.__topFrame, self.__currentPort, *self.SERIALCOMMODE)
+        self.__comMode.grid(row=0,column=1,padx=5)
+        self.__comButton = Button(self.__topFrame, text="Connect",bg="red", command=self.checkPort, relief="flat", padx=20)
+        self.__comButton.grid(row=0,column=2,padx=5)
+        self.__logoutButton = Button(self.__topFrame, text="Logout", command=self.logout, relief="flat", padx=20)
+        self.__logoutButton.grid(row=0, column=3,padx=230)
+        self.__topFrame.pack()
+    def initalizeLeftFrame(self):
+        self.__leftFrame = Frame(self.__centerFrame, bg='#0059b3', width=640, height=550)
         self.__leftFrame.grid(row=0,column=0)
-        self.__rightFrame.grid(row=0,column=1)
         self.__graphWindow = GraphWindow(self.__leftFrame)
         self.__graphWindow.pack()
-        self.initalizeButtonList()
-    def initalizeButtonList(self):
+    def initalizeRightFrame(self):
+        self.__rightFrame = Frame(self.__centerFrame, bg='#0059b3', width=640, height=550)
+        self.__rightFrame.grid(row=0,column=1)
+        topRight = Frame(self.__rightFrame, bg='#0059b3', width=640, height=275)
+        bottomRight = Frame(self.__rightFrame, bg='#0059b3', width=640, height=275)
+        topRight.pack()
+        bottomRight.pack()
+        self.__saveButton = Button(topRight, text="Save Mode", command="", relief="flat", padx=20)
+        self.__saveButton.grid(row=0, column=1, padx=20, pady=20)
+        self.__modeList = OptionMenu(topRight, self.__currentMode, *self.MODELABELS)
+        self.__modeList.grid(row=0, column=0, padx=20, pady=20)
+        self.initalizeParameterList(bottomRight)
+    def initalizeBottomFrame(self):
+        self.__bottomFrame = Frame(self, bg='#0059b3', width=1280, height=10)
+        self.__bottomFrame.pack()
+        self.__consoleLog = Text(self.__bottomFrame,width=100,height=5,state="disabled")
+        self.__consoleLog.pack(pady=10)
+
+    def checkPort(self):
+       # code for checking IO without pacemaker
+        if self.__currentPort.get() == "COM8":
+            self.__comButton.config(bg="#90ee90")
+        else:
+            self.__comButton.config(bg="red")
+
+    def logout(self):
+        self.__mainWindow.logout()
+    def initalizeParameterList(self,higherFrame):
         for i in range(0,8,2):
             for j in range(2):
-                label=Label(self.__rightFrame,text=i+j)
-                entry = Entry(self.__rightFrame)
+                label=Label(higherFrame,text=self.PARAMLABELS[i+j])
+                entry = Entry(higherFrame)
                 self.__buttonArr.append(label)
-                label.grid(row=i,column=j,padx=20,pady=20)
+                label.grid(row=i,column=j,padx=20,pady=10)
                 self.__entryArr.append(entry)
-                entry.grid(row=i+1,column=j,padx=20,pady=20)
+                entry.grid(row=i+1,column=j,padx=20,pady=10)
 
 
 
@@ -266,11 +335,9 @@ class ContentWindow(tk.Frame):
         tk.Frame.__init__(self,parent)
         self.parent=parent
         parent.title("DCM")
-        parent.geometry("1200x600")
+        parent.geometry("1280x600")
         parent.config(bg='#0059b3')
         self.loginWindow = LoginWindow(self)
-        #self.frame=Frame(self,bg="red",width=112,height=112)
-        #self.frame.pack(anchor='center')
         self.loginWindow.pack(anchor="s")
 
     def login(self):
@@ -278,6 +345,15 @@ class ContentWindow(tk.Frame):
         self.loginWindow.destroy()
         self.DCM =DCMWindow(self)
         self.DCM.pack()
+    def logout(self):
+        self.DCM.pack_forget()
+        self.DCM.destroy()
+        self.loginWindow = LoginWindow(self)
+        self.loginWindow.pack()
+
+
+def key_pressed(event):
+    print(event.char)
 
 # Main script
 if __name__ == "__main__":
