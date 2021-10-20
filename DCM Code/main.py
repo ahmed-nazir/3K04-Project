@@ -134,7 +134,7 @@ class LoginWindow(tk.Frame):
         else:
             messagebox.askyesno("User Validation","User not registered, do you want to register?")
             self.registerUser()
-        
+
             
         
 
