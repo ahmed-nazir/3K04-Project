@@ -45,7 +45,6 @@ class FileIO:
                 data=json.load(f)
             return data
         except:
-            print("The file is empty")
             return None
     
     # Setter functions
