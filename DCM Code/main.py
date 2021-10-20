@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import *
 from tkinter import messagebox
 from matplotlib.figure import Figure
@@ -297,7 +298,7 @@ class DCMWindow(tk.Frame):
         for i in range(0,8,2):
             for j in range(2):
                 label=Label(higherFrame,text=self.PARAMLABELS[i+j],bg=self.BACKGROUND_COLOR)
-                entry = Entry(higherFrame)
+                entry = ttk.Combobox(higherFrame,values = [1,2,3,4,5,6,7,8,9])
                 self.__buttonArr.append(label)
                 label.grid(row=i,column=j,padx=20,pady=10)
                 self.__entryArr.append(entry)
