@@ -1,4 +1,3 @@
-import tkinter
 import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
@@ -39,7 +38,7 @@ class LoginWindow(tk.Frame):
     FONT = ("Arial", 12)
     DEFAULT_USERNAME_TEXT = "Username"
     DEFAULT_PASSWORD_TEXT = "Password"
-    DEFAULT_SUBMIT_BUTTON_TEXT = "Submit"
+    DEFAULT_login_BUTTON_TEXT = "Login"
     DEFAULT_REGISTER_BUTTON_TEXT = "Register"
     PADDING = 10
     BACKGROUND_COLOR = "#0059b3"
@@ -49,7 +48,7 @@ class LoginWindow(tk.Frame):
     __mainWindow = None
     __usernameField = None
     __passwordField = None
-    __submitButton = None
+    __loginButton = None
     __registerButton = None
     __password = "Password"
     __username = "Username"
@@ -93,9 +92,9 @@ class LoginWindow(tk.Frame):
 
     def __initializeButtons(self):
         self.__buttonFrame = Frame(self, bg="red")
-        self.__submitButton = Button(self.__buttonFrame, text=self.DEFAULT_SUBMIT_BUTTON_TEXT, command=self.getText,
+        self.__loginButton = Button(self.__buttonFrame, text=self.DEFAULT_login_BUTTON_TEXT, command=self.getText,
                                    relief="flat")
-        self.__submitButton.grid(row=0, column=0, padx=5, pady=10)
+        self.__loginButton.grid(row=0, column=0, padx=5, pady=10)
 
         self.__registerButton = Button(self.__buttonFrame, text=self.DEFAULT_REGISTER_BUTTON_TEXT,
                                        command=self.registerUser,
@@ -105,7 +104,7 @@ class LoginWindow(tk.Frame):
         self.__buttonFrame.pack()
 
     """
-        Function is called when the submit button is pressed, validates the password to the stored file and 
+        Function is called when the login button is pressed, validates the password to the stored file and 
         will enter the DCM window if successful
         @param self
     """
@@ -125,7 +124,7 @@ class LoginWindow(tk.Frame):
             self.__mainWindow.login()
 
     def CheckPass(self):
-        alt=FileIO(__filename,"r")
+        alt=FileIO(self.__filename,"r")
         f=alt.readText()
         if self.__username in f:
             if self.__password==f[self.__username]:
@@ -133,7 +132,7 @@ class LoginWindow(tk.Frame):
             else:
                 messagebox.askretrycancel("User Validation","Wrong password,try again?")
         else:
-            messagebox.askyesno("User Validation","User not registered, do you want to register?)
+            messagebox.askyesno("User Validation","User not registered, do you want to register?")
             self.registerUser()
         
             
@@ -215,10 +214,26 @@ class GraphWindow(tk.Frame):
             canvas.get_tk_widget().pack()
 
 class DCMWindow(tk.Frame):
+    # Constants
+    PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Atrial Pulsewidth","Atrial Refractory Period","Ventricular Amplitude","Ventricular Pulsewidth","Ventricular Refractory Period"]
+    MODELABELS = {"AOO", "VOO", "AAI", "VVI" }
+
+    # Padding is in PX
+    PADDING = 20
+    # Private Variables
     __buttonArr=[]
     __entryArr=[]
+    __modeList = None
+    __tkVar = None
+    
+    """
+        Constructor
+        @param mainWindow
+    """
+
+
     def __init__(self, mainWindow):
-        tk.Frame.__init__(self,mainWindow,bg="blue",width="1280",height="600")
+        tk.Frame.__init__(self,mainWindow,bg="blue",width=1280,height=600)
         self.__topFrame= Frame(self,bg='blue',width=1280,height=50)
         self.__centerFrame = Frame(self,bg='blue',width=1280,height=550)
         self.__leftFrame = Frame(self.__centerFrame,bg='blue',width=640,height=550)
@@ -227,14 +242,22 @@ class DCMWindow(tk.Frame):
         self.__centerFrame.pack()
         self.__leftFrame.grid(row=0,column=0)
         self.__rightFrame.grid(row=0,column=1)
+
+        topRight= Frame(self.__rightFrame,bg='blue',width=640,height=275)
+        bottomRight = Frame(self.__rightFrame, bg='blue', width=640, height=275)
+        topRight.pack()
+        bottomRight.pack()
+        self.__tkVar=StringVar(self)
+        self.__modeList = OptionMenu(topRight,self.__tkVar,* self.MODELABELS)
+        self.__modeList.pack()
         self.__graphWindow = GraphWindow(self.__leftFrame)
         self.__graphWindow.pack()
-        self.initalizeButtonList()
-    def initalizeButtonList(self):
+        self.initalizeButtonList(bottomRight)
+    def initalizeButtonList(self,higherFrame):
         for i in range(0,8,2):
             for j in range(2):
-                label=Label(self.__rightFrame,text=i+j)
-                entry = Entry(self.__rightFrame)
+                label=Label(higherFrame,text=self.PARAMLABELS[i+j])
+                entry = Entry(higherFrame)
                 self.__buttonArr.append(label)
                 label.grid(row=i,column=j,padx=20,pady=20)
                 self.__entryArr.append(entry)
@@ -265,8 +288,6 @@ class ContentWindow(tk.Frame):
         parent.geometry("1200x600")
         parent.config(bg='#0059b3')
         self.loginWindow = LoginWindow(self)
-        #self.frame=Frame(self,bg="red",width=112,height=112)
-        #self.frame.pack(anchor='center')
         self.loginWindow.pack(anchor="s")
 
     def login(self):
