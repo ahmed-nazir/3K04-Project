@@ -41,8 +41,10 @@ class FileIO:
 
     def readText(self):
         try:
+            print(self.__fileName)
             with open(self.__fileName,"r") as f:
                 data=json.load(f)
+                print(data)
             return data
         except:
             return None

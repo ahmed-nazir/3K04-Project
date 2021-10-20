@@ -43,6 +43,7 @@ class LoginWindow(tk.Frame):
     DEFAULT_REGISTER_BUTTON_TEXT = "Register"
     PADDING = 10
     BACKGROUND_COLOR = "#0059b3"
+    PASSWORDFILE = "DCM Code\password.json"
 
     # Private Variables
     __root = None
@@ -95,6 +96,7 @@ class LoginWindow(tk.Frame):
         self.__buttonFrame = Frame(self, bg="red")
         self.__submitButton = Button(self.__buttonFrame, text=self.DEFAULT_SUBMIT_BUTTON_TEXT, command=self.getText,
                                    relief="flat")
+                                   
         self.__submitButton.grid(row=0, column=0, padx=5, pady=10)
 
         self.__registerButton = Button(self.__buttonFrame, text=self.DEFAULT_REGISTER_BUTTON_TEXT,
@@ -120,14 +122,16 @@ class LoginWindow(tk.Frame):
         # Code below is when there is a matching password and key, the program
         # will remove the password screen and add the main program
         # --Note: figure out a way to only remove content pane instead of removing all elements in content pane
-
-        if(1):
-            self.__mainWindow.login()
+        self.CheckPass()
+        #if(1):
+         #   self.__mainWindow.login()
 
     def CheckPass(self):
-        alt=FileIO(__filename,"r")
+        alt=FileIO(self.PASSWORDFILE)
         f=alt.readText()
+        print(f)
         if self.__username in f:
+            print("Works")
             if self.__password==f[self.__username]:
                 self.__mainWindow.login()
             else:
@@ -135,7 +139,7 @@ class LoginWindow(tk.Frame):
         else:
             messagebox.askyesno("User Validation","User not registered, do you want to register")
             self.registerUser()
-        
+
             
         
 
@@ -145,7 +149,7 @@ class LoginWindow(tk.Frame):
     """
 
     def registerUser(self):
-        alt=FileIO(__filename,"r")
+        alt=FileIO(self.PASSWORDFILE)
         d=alt.getlength()
         text={self.__username:self.__password}
         if d==10:
