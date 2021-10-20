@@ -133,7 +133,7 @@ class LoginWindow(tk.Frame):
             else:
                 messagebox.askretrycancel("User Validation","Wrong password,try again?")
         else:
-            messagebox.askyesno("User Validation","User not registered, do you want to register?)
+            messagebox.askyesno("User Validation","User not registered, do you want to register")
             self.registerUser()
         
             
