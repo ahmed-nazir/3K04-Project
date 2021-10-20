@@ -127,17 +127,14 @@ class LoginWindow(tk.Frame):
     def CheckPass(self):
         alt=FileIO(__filename,"r")
         f=alt.readText()
-        if __username in f:
-            #print("user registered")
-            if __password==f[__username]:
-                #print("Login succeed")
-                return True
+        if self.__username in f:
+            if self.__password==f[self.__username]:
+                self.__mainWindow.login()
             else:
-                #print("wrong password")
-                return False
+                messagebox.askretrycancel("User Validation","Wrong password,try again?")
         else:
-            #print("user not registered")
-            return False
+            messagebox.askyesno("User Validation","User not registered, do you want to register?)
+            self.registerUser()
         
             
         
@@ -148,7 +145,14 @@ class LoginWindow(tk.Frame):
     """
 
     def registerUser(self):
-        pass
+        alt=FileIO(__filename,"r")
+        d=alt.getlength()
+        text={self.__username:self.__password}
+        if d==10:
+            messagebox.showinfo("User Validation","Maximum number of users reached")
+        else:
+            alt.writeText(text)
+                                
 
     """
     Getter functions
