@@ -23,7 +23,6 @@ class FileIO:
     
     def writeText(self,text):
         if os.path.isfile(self.__fileName):
-            #print("The File exists")
             with open(self.__fileName,"r")as f:
                 data = self.readText()
                 if not data:
@@ -41,10 +40,8 @@ class FileIO:
 
     def readText(self):
         try:
-            print(self.__fileName)
             with open(self.__fileName,"r") as f:
                 data=json.load(f)
-                print(data)
             return data
         except:
             return None

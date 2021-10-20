@@ -40,8 +40,8 @@ class LoginWindow(tk.Frame):
     WIDTH = 30
     HEIGHT = 1
     FONT = ("Arial", 12)
-    DEFAULT_USERNAME_TEXT = "Username"
-    DEFAULT_PASSWORD_TEXT = "Password"
+    DEFAULT_USERNAME_TEXT = ""
+    DEFAULT_PASSWORD_TEXT = ""
     DEFAULT_login_BUTTON_TEXT = "Login"
     DEFAULT_REGISTER_BUTTON_TEXT = "Register"
     PADDING = 10
@@ -55,8 +55,8 @@ class LoginWindow(tk.Frame):
     __passwordField = None
     __loginButton = None
     __registerButton = None
-    __password = "Password"
-    __username = "Username"
+    __password = None
+    __username = None
     __contentPane = None
     __buttonFrame = None
     # Public Variables
@@ -97,14 +97,11 @@ class LoginWindow(tk.Frame):
 
     def __initializeButtons(self):
         self.__buttonFrame = Frame(self, bg="red")
-        self.__loginButton = Button(self.__buttonFrame, text=self.DEFAULT_login_BUTTON_TEXT, command=self.getText,
-                                   relief="flat")
+        self.__loginButton = Button(self.__buttonFrame, text=self.DEFAULT_login_BUTTON_TEXT, command=self.CheckPass,relief="flat")
                                    
-        self.__submitButton.grid(row=0, column=0, padx=5, pady=10)
+        self.__loginButton.grid(row=0, column=0, padx=5, pady=10)
 
-        self.__registerButton = Button(self.__buttonFrame, text=self.DEFAULT_REGISTER_BUTTON_TEXT,
-                                       command=self.registerUser,
-                                       relief="flat")
+        self.__registerButton = Button(self.__buttonFrame, text=self.DEFAULT_REGISTER_BUTTON_TEXT,command=self.registerUser,relief="flat")
         self.__registerButton.grid(row=0, column=1, padx=5, pady=10)
 
         self.__buttonFrame.pack()
@@ -118,28 +115,23 @@ class LoginWindow(tk.Frame):
     def getText(self):
         self.__password = self.__passwordField.get()
         self.__username = self.__usernameField.get()
-        # DEBUGGING: Test output, remove when no longer needed
-        print(self.__username, " Username")
-        print(self.__password, " Password")
 
         # Code below is when there is a matching password and key, the program
         # will remove the password screen and add the main program
         # --Note: figure out a way to only remove content pane instead of removing all elements in content pane
-        self.CheckPass()
     
     def CheckPass(self):
+        self.getText()
         alt=FileIO(self.PASSWORDFILE)
         f=alt.readText()
-        print(f)
         if self.__username in f:
-            print("Works")
             if self.__password==f[self.__username]:
                 self.__mainWindow.login()
             else:
                 messagebox.askretrycancel("User Validation","Wrong password,try again?")
         else:
             messagebox.askyesno("User Validation","User not registered, do you want to register?")
-            self.registerUser()
+            
 
             
         
@@ -152,8 +144,11 @@ class LoginWindow(tk.Frame):
     def registerUser(self):
         alt=FileIO(self.PASSWORDFILE)
         d=alt.getlength()
+        self.getText()
         text={self.__username:self.__password}
-        if d==10:
+        if (self.__username == "" or self.__password == ""):
+            messagebox.showinfo("Error: No Data Entered","NO DATA ENTERED")
+        elif d==10:
             messagebox.showinfo("User Validation","Maximum number of users reached")
         else:
             alt.writeText(text)
