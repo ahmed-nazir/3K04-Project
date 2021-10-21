@@ -120,6 +120,7 @@ class LoginWindow(tk.Frame):
         global username
         self.__password = self.__passwordField.get()
         self.__username = self.__usernameField.get()
+        username = self.__username
         # Code below is when there is a matching password and key, the program
         # will remove the password screen and add the main program
         # --Note: figure out a way to only remove content pane instead of removing all elements in content pane
@@ -128,7 +129,9 @@ class LoginWindow(tk.Frame):
         self.getText()
         alt=FileIO(self.PASSWORDFILE)
         f=alt.readText()
-        if self.__username in f:
+        if (self.__username == "" or self.__password == ""):
+            messagebox.showinfo("Error: No Data Entered","NO DATA ENTERED")
+        elif self.__username in f:
             if self.__password==f[self.__username]:
                 self.__paddingFrame.pack_forget()
                 self.__paddingFrame.destroy()
@@ -136,7 +139,7 @@ class LoginWindow(tk.Frame):
             else:
                 messagebox.askretrycancel("User Validation","Wrong password,try again?")
         else:
-            messagebox.askyesno("User Validation","User not registered, do you want to register?")
+            messagebox.showinfo("User Validation","User not registered, Please Register User")
             
 
             
@@ -150,14 +153,18 @@ class LoginWindow(tk.Frame):
     def registerUser(self):
         alt=FileIO(self.PASSWORDFILE)
         d=alt.getlength()
+        f = alt.readText()
         self.getText()
         text={self.__username:self.__password}
         if (self.__username == "" or self.__password == ""):
             messagebox.showinfo("Error: No Data Entered","NO DATA ENTERED")
+        elif (self.__username in f):
+            messagebox.showinfo("Error: User Already Registered","Try another username")
         elif d==10:
             messagebox.showinfo("User Validation","Maximum number of users reached")
         else:
             alt.writeText(text)
+            messagebox.showinfo("User Registerd","User Successfully Registered")
                                 
 
     """
@@ -175,8 +182,7 @@ class GraphWindow(tk.Frame):
         self.plot()
     def plot(self):
             # the figure that will contain the plot
-            fig = Figure(figsize=(4, 4),
-                         dpi=100)
+            fig = Figure(figsize=(4, 4),dpi=100)
 
             # list of squares
             y = [i ** 2 for i in range(101)]
@@ -206,8 +212,43 @@ class GraphWindow(tk.Frame):
 
 class DCMWindow(tk.Frame):
     # Constants
-    PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Atrial Pulsewidth","Atrial Refractory Period","Ventricular Amplitude","Ventricular Pulsewidth","Ventricular Refractory Period"]
-    MODELABELS = {"AOO", "VOO", "AAI", "VVI"}
+    PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Ventricular Amplitude","Atrial Pulsewidth","Ventricular Pulsewidth","Atrial Refractory Period","Ventricular Refractory Period"]
+    LRL = [30,35,40,45,50]
+    URL = []
+    ATRAMP = ["Off"]
+    VENTAMP = ["Off"]
+    ATRWIDTH = [0.05]
+    VENTWIDTH = [0.05]
+    ATRREFRAC = []
+    VENTREFRAC = []
+    
+    for i in range(40):
+        LRL.append(51+i)
+    for i in range(17):
+        LRL.append(95+5*i)
+
+    for i in range(26):
+        URL.append(50 + i*5)
+
+    for i in range(28):
+        ATRAMP.append(round(0.5 + 0.1*i,1))
+        VENTAMP.append(round(0.5 + 0.1*i,1))
+    for i in range(8):
+        ATRAMP.append(round(3.5 + 0.5*i,1))
+        VENTAMP.append(round(3.5 + 0.5*i,1))
+    
+    for i in range(19):
+        ATRWIDTH.append(round(0.1 + i*0.1,1))
+        VENTWIDTH.append(round(0.1 + i*0.1,1))
+
+    for i in range(36):
+        ATRREFRAC.append(150 + 10*i)
+        VENTREFRAC.append(150 + 10*i)
+
+
+    PROGRAMABLEPARAMETERS = [LRL,URL,ATRAMP,VENTAMP,ATRWIDTH,VENTWIDTH,ATRREFRAC,VENTREFRAC]
+
+    MODELABELS = ["AOO", "VOO", "AAI", "VVI"]
     #The following variable is a placeholder before serial communication is implemented
     BACKGROUND_COLOR = "#FAF9F6"
     SERIALCOMMODE = {"COM8","COM9"}
@@ -226,6 +267,7 @@ class DCMWindow(tk.Frame):
     __logoutButton = None
     __comButton= None
     __consoleLog = None
+    showState = ["readonly","readonly","readonly","readonly","readonly","readonly","readonly","readonly"]
     """
         Constructor
         @param mainWindow
@@ -242,7 +284,7 @@ class DCMWindow(tk.Frame):
         self.__centerFrame = Frame(self,bg=self.BACKGROUND_COLOR,width=1280,height=550)
         self.__centerFrame.pack()
         self.initalizeLeftFrame()
-        self.initalizeRightFrame()
+        self.initalizeRightFrame(self.showState)
         self.initalizeBottomFrame()
 
     def initalizeTopFrame(self):
@@ -263,24 +305,36 @@ class DCMWindow(tk.Frame):
         self.__leftFrame.grid(row=0,column=0)
         self.__graphWindow = GraphWindow(self.__leftFrame)
         self.__graphWindow.pack()
-    def initalizeRightFrame(self):
+    def initalizeRightFrame(self,showState):
         self.__rightFrame = Frame(self.__centerFrame, bg=self.BACKGROUND_COLOR, width=640, height=550)
         self.__rightFrame.grid(row=0,column=1)
         topRight = Frame(self.__rightFrame, bg=self.BACKGROUND_COLOR, width=640, height=275)
         bottomRight = Frame(self.__rightFrame, bg=self.BACKGROUND_COLOR, width=640, height=275)
         topRight.pack()
         bottomRight.pack()
-        self.__saveButton = Button(topRight, text="Save Mode", command="", relief="flat", padx=20)
+        self.__saveButton = Button(topRight, text="Select Mode", command=self.modeSelect, relief="flat", padx=20)
         self.__saveButton.grid(row=0, column=1, padx=20, pady=20)
-        self.__modeList = OptionMenu(topRight, self.__currentMode, *self.MODELABELS)
+        #self.__modeList = OptionMenu(topRight, self.__currentMode, *self.MODELABELS)
+        self.__modeList = ttk.Combobox(topRight,values = self.MODELABELS,state="readonly")
         self.__modeList.grid(row=0, column=0, padx=20, pady=20)
-        self.initalizeParameterList(bottomRight)
+        self.initalizeParameterList(bottomRight,showState)
     def initalizeBottomFrame(self):
         self.__bottomFrame = Frame(self, bg=self.BACKGROUND_COLOR, width=1280, height=10)
         self.__bottomFrame.pack()
         self.__consoleLog = Text(self.__bottomFrame,width=100,height=5,state="disabled")
         self.__consoleLog.pack(pady=10)
+    
+    def modeSelect(self):
+        if self.__modeList.get() == "AOO":
+            self.initalizeRightFrame(["readonly","readonly","readonly","disabled","disabled","disabled"])
+        elif self.__modeList.get() == "AAI":
+            print("AAI SELECTED")
+        elif self.__modeList.get() == "VOO":
+            print("VOO SELECTED")
+        elif self.__modeList.get() == "VVI":
+            print("VVI SELECTED")
 
+            
     def checkPort(self):
        # code for checking IO without pacemaker
         if self.__currentPort.get() == "COM8":
@@ -293,16 +347,17 @@ class DCMWindow(tk.Frame):
 
     def enterPressed(self,event):
         print("Hello")
-
-    def initalizeParameterList(self,higherFrame):
+    
+    def initalizeParameterList(self,higherFrame,showState):
         for i in range(0,8,2):
             for j in range(2):
                 label=Label(higherFrame,text=self.PARAMLABELS[i+j],bg=self.BACKGROUND_COLOR)
-                entry = ttk.Combobox(higherFrame,values = [1,2,3,4,5,6,7,8,9])
+                entry = ttk.Combobox(higherFrame,values = self.PROGRAMABLEPARAMETERS[i+j],state=showState[i+j])
                 self.__buttonArr.append(label)
                 label.grid(row=i,column=j,padx=20,pady=10)
                 self.__entryArr.append(entry)
                 entry.grid(row=i+1,column=j,padx=20,pady=10)
+
 
 
 
@@ -345,3 +400,4 @@ class ContentWindow(tk.Frame):
 # Main script
 if __name__ == "__main__":
     run = Run()
+    
