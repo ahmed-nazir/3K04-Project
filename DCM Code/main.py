@@ -275,7 +275,6 @@ class DCMWindow(tk.Frame):
 
     def __init__(self, mainWindow):
         tk.Frame.__init__(self,mainWindow,bg=self.BACKGROUND_COLOR,width=1280,height=600)
-        self.bind("<Return>", self.enterPressed)
         self.__mainWindow = mainWindow
         self.__mainWindow.focus_set()
         self.__currentMode=StringVar(self)
@@ -284,7 +283,7 @@ class DCMWindow(tk.Frame):
         self.__centerFrame = Frame(self,bg=self.BACKGROUND_COLOR,width=1280,height=550)
         self.__centerFrame.pack()
         self.initalizeLeftFrame()
-        self.initalizeRightFrame(self.showState)
+        self.initalizeRightFrame()
         self.initalizeBottomFrame()
 
     def initalizeTopFrame(self):
@@ -305,7 +304,7 @@ class DCMWindow(tk.Frame):
         self.__leftFrame.grid(row=0,column=0)
         self.__graphWindow = GraphWindow(self.__leftFrame)
         self.__graphWindow.pack()
-    def initalizeRightFrame(self,showState):
+    def initalizeRightFrame(self):
         self.__rightFrame = Frame(self.__centerFrame, bg=self.BACKGROUND_COLOR, width=640, height=550)
         self.__rightFrame.grid(row=0,column=1)
         topRight = Frame(self.__rightFrame, bg=self.BACKGROUND_COLOR, width=640, height=275)
@@ -317,7 +316,7 @@ class DCMWindow(tk.Frame):
         #self.__modeList = OptionMenu(topRight, self.__currentMode, *self.MODELABELS)
         self.__modeList = ttk.Combobox(topRight,values = self.MODELABELS,state="readonly")
         self.__modeList.grid(row=0, column=0, padx=20, pady=20)
-        self.initalizeParameterList(bottomRight,showState)
+        self.initalizeParameterList(bottomRight)
     def initalizeBottomFrame(self):
         self.__bottomFrame = Frame(self, bg=self.BACKGROUND_COLOR, width=1280, height=10)
         self.__bottomFrame.pack()
@@ -326,15 +325,18 @@ class DCMWindow(tk.Frame):
     
     def modeSelect(self):
         if self.__modeList.get() == "AOO":
-            self.initalizeRightFrame(["readonly","readonly","readonly","disabled","disabled","disabled"])
+            self.TestFunction(["readonly","readonly","readonly","disabled","disabled","disabled"])
         elif self.__modeList.get() == "AAI":
-            print("AAI SELECTED")
+            self.TestFunction(["readonly","readonly","readonly","disabled","readonly","disabled"])
         elif self.__modeList.get() == "VOO":
-            print("VOO SELECTED")
+            self.TestFunction(["readonly","readonly","disabled","readonly","disabled","disabled"])
         elif self.__modeList.get() == "VVI":
-            print("VVI SELECTED")
+            self.TestFunction(["readonly","readonly","disabled","readonly","disabled","readonly"])
 
-            
+    def TestFunction(self,showState):
+        for i in range(len(showState)):
+            self.__entryArr[i].config(state = showState[i])
+                
     def checkPort(self):
        # code for checking IO without pacemaker
         if self.__currentPort.get() == "COM8":
@@ -344,15 +346,12 @@ class DCMWindow(tk.Frame):
 
     def logout(self):
         self.__mainWindow.logout()
-
-    def enterPressed(self,event):
-        print("Hello")
     
-    def initalizeParameterList(self,higherFrame,showState):
+    def initalizeParameterList(self,higherFrame):
         for i in range(0,8,2):
             for j in range(2):
                 label=Label(higherFrame,text=self.PARAMLABELS[i+j],bg=self.BACKGROUND_COLOR)
-                entry = ttk.Combobox(higherFrame,values = self.PROGRAMABLEPARAMETERS[i+j],state=showState[i+j])
+                entry = ttk.Combobox(higherFrame,values = self.PROGRAMABLEPARAMETERS[i+j],state="disabled")
                 self.__buttonArr.append(label)
                 label.grid(row=i,column=j,padx=20,pady=10)
                 self.__entryArr.append(entry)
