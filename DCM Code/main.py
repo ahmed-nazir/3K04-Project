@@ -6,9 +6,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
 NavigationToolbar2Tk)
 from IOStream import FileIO
-
-# Global Variables
-username = ""
+import math
 
 """
     The Run class is used to start the program
@@ -47,7 +45,7 @@ class LoginWindow(tk.Frame):
     PADDING = 10
     BACKGROUND_COLOR = "#FAF9F6"
     FOREGROUND_COLOR = "#C0C0C0"
-    PASSWORDFILE = "DCM Code\password.json"
+    PASSWORDFILE = "password.json"
 
     # Private Variables
     __root = None
@@ -60,6 +58,7 @@ class LoginWindow(tk.Frame):
     __username = None
     __contentPane = None
     __buttonFrame = None
+    __paddingFrame = None
     # Public Variables
 
     """
@@ -117,15 +116,14 @@ class LoginWindow(tk.Frame):
     """
 
     def getText(self):
-        global username
         self.__password = self.__passwordField.get()
         self.__username = self.__usernameField.get()
-        username = self.__username
         # Code below is when there is a matching password and key, the program
         # will remove the password screen and add the main program
         # --Note: figure out a way to only remove content pane instead of removing all elements in content pane
     
     def CheckPass(self):
+
         self.getText()
         alt=FileIO(self.PASSWORDFILE)
         f=alt.readText()
@@ -134,22 +132,16 @@ class LoginWindow(tk.Frame):
         elif self.__username in f:
             if self.__password==f[self.__username]:
                 self.__paddingFrame.pack_forget()
-                self.__paddingFrame.destroy()
                 self.__mainWindow.login()
             else:
                 messagebox.askretrycancel("User Validation","Wrong password,try again?")
         else:
             messagebox.showinfo("User Validation","User not registered, Please Register User")
-            
-
-            
-        
 
     """
         Function opens a frame to add new credentials if applicable
         @param self
     """
-
     def registerUser(self):
         alt=FileIO(self.PASSWORDFILE)
         d=alt.getlength()
@@ -165,14 +157,16 @@ class LoginWindow(tk.Frame):
         else:
             alt.writeText(text)
             messagebox.showinfo("User Registerd","User Successfully Registered")
-                                
+    def getUsername(self):
+        return self.__username
+    def clearVal(self):
+        self.__usernameField.delete(0,END)
+        self.__usernameField.pack()
+        self.__passwordField.delete(0,END)
+        self.__passwordField.pack()
+    def setPaddingVisible(self):
+        self.__paddingFrame.pack()
 
-    """
-    Getter functions
-    """
-
-    def getRoot(self):
-        return self.__root
 
 class GraphWindow(tk.Frame):
     __mainWindow=None
@@ -181,33 +175,12 @@ class GraphWindow(tk.Frame):
         self.__mainWindow = mainWindow
         self.plot()
     def plot(self):
-            # the figure that will contain the plot
             fig = Figure(figsize=(4, 4),dpi=100)
-
-            # list of squares
-            y = [i ** 2 for i in range(101)]
-
-            # adding the subplot
+            y = [math.sin(i/10) for i in range(1,200)]
             plot1 = fig.add_subplot(111)
-
-            # plotting the graph
             plot1.plot(y)
-
-            # creating the Tkinter canvas
-            # containing the Matplotlib figure
-            canvas = FigureCanvasTkAgg(fig,
-                                       master=self)
+            canvas = FigureCanvasTkAgg(fig,master=self)
             canvas.draw()
-
-            # placing the canvas on the Tkinter window
-            canvas.get_tk_widget().pack()
-
-            # creating the Matplotlib toolbar
-            toolbar = NavigationToolbar2Tk(canvas,
-                                           self)
-            toolbar.update()
-
-            # placing the toolbar on the Tkinter window
             canvas.get_tk_widget().pack()
 
 class DCMWindow(tk.Frame):
@@ -256,7 +229,7 @@ class DCMWindow(tk.Frame):
     PADDING = 20
     # Private Variables
     __mainWindow = None
-    __buttonArr=[]
+    __labelArr=[]
     __entryArr=[]
     __modeList = None
     __currentMode = None
@@ -273,20 +246,20 @@ class DCMWindow(tk.Frame):
         @param mainWindow
     """
 
-    def __init__(self, mainWindow):
+    def __init__(self, mainWindow,username):
         tk.Frame.__init__(self,mainWindow,bg=self.BACKGROUND_COLOR,width=1280,height=600)
         self.__mainWindow = mainWindow
         self.__mainWindow.focus_set()
         self.__currentMode=StringVar(self)
         self.__currentPort = StringVar(self)
-        self.initalizeTopFrame()
+        self.initalizeTopFrame(username)
         self.__centerFrame = Frame(self,bg=self.BACKGROUND_COLOR,width=1280,height=550)
         self.__centerFrame.pack()
         self.initalizeLeftFrame()
         self.initalizeRightFrame()
         self.initalizeBottomFrame()
 
-    def initalizeTopFrame(self):
+    def initalizeTopFrame(self,username):
         self.__topFrame = Frame(self, bg=self.BACKGROUND_COLOR, width=1280, height=50)
 
         self.__usernameLabel = Label(self.__topFrame,text="User: "+username,bg=self.BACKGROUND_COLOR)
@@ -336,7 +309,14 @@ class DCMWindow(tk.Frame):
     def TestFunction(self,showState):
         for i in range(len(showState)):
             self.__entryArr[i].config(state = showState[i])
-                
+
+    def resetMode(self):
+        self.__modeList.set("VOO")
+        self.TestFunction(["readonly","readonly","disabled","readonly","disabled","disabled"])
+        for item in self.__entryArr:
+            item.set("")
+
+
     def checkPort(self):
        # code for checking IO without pacemaker
         if self.__currentPort.get() == "COM8":
@@ -346,13 +326,14 @@ class DCMWindow(tk.Frame):
 
     def logout(self):
         self.__mainWindow.logout()
-    
+    def setUsername(self,username):
+        self.__usernameLabel.config(text="User: " +username)
     def initalizeParameterList(self,higherFrame):
         for i in range(0,8,2):
             for j in range(2):
                 label=Label(higherFrame,text=self.PARAMLABELS[i+j],bg=self.BACKGROUND_COLOR)
-                entry = ttk.Combobox(higherFrame,values = self.PROGRAMABLEPARAMETERS[i+j],state="disabled")
-                self.__buttonArr.append(label)
+                entry = ttk.Combobox(higherFrame,values=self.PROGRAMABLEPARAMETERS[i+j],state="disabled")
+                self.__labelArr.append(label)
                 label.grid(row=i,column=j,padx=20,pady=10)
                 self.__entryArr.append(entry)
                 entry.grid(row=i+1,column=j,padx=20,pady=10)
@@ -371,6 +352,7 @@ class ContentWindow(tk.Frame):
     loginWindow = None
     parent = None
     DCM = None
+    username = ""
     """
          Object Constructor
          @param self
@@ -383,20 +365,22 @@ class ContentWindow(tk.Frame):
         parent.geometry("1280x600")
         parent.config(bg='#FAF9F6')
         self.loginWindow = LoginWindow(self)
+        self.DCM = DCMWindow(self,self.username)
         self.loginWindow.pack()
 
     def login(self):
         self.loginWindow.pack_forget()
-        self.loginWindow.destroy()
-        self.DCM =DCMWindow(self)
+        self.username = self.loginWindow.getUsername()
+        self.DCM.setUsername(self.username)
+        self.DCM.resetMode()
         self.DCM.pack()
     def logout(self):
         self.DCM.pack_forget()
-        self.DCM.destroy()
-        self.loginWindow = LoginWindow(self)
+        self.loginWindow.clearVal()
+        self.loginWindow.setPaddingVisible()
         self.loginWindow.pack()
 
 # Main script
 if __name__ == "__main__":
     run = Run()
-    
+
