@@ -8,15 +8,12 @@ NavigationToolbar2Tk)
 from IOStream import FileIO
 import math
 
-"""
-    The Run class is used to start the program
-"""
+
 
 
 class Run:
     """
-        Object Constructor
-        @param self
+    The Run class is used to start the program
     """
 
     def __init__(self):
@@ -26,13 +23,18 @@ class Run:
         cw.pack()
         cw.mainloop()
 
-"""
-    The LoginWindow class is the the initial interface in viewing the program
-    Extends tk.Frame  
-"""
+
 
 
 class LoginWindow(tk.Frame):
+    """[summary]
+
+    Args:
+        tk ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     # Variable Declaration
     # Constants
     WIDTH = 30
@@ -61,12 +63,13 @@ class LoginWindow(tk.Frame):
     __paddingFrame = None
     # Public Variables
 
-    """
-        Object Constructor
-        @param self
-    """
 
     def __init__(self, mainWindow):
+        """[summary]
+
+        Args:
+            mainWindow ([type]): [description]
+        """
         tk.Frame.__init__(self, mainWindow, bg=self.FOREGROUND_COLOR, width=200, height=200, padx=self.PADDING, pady=self.PADDING, relief=tk.RIDGE, borderwidth=3)
         self.__mainWindow = mainWindow
         self.__root = mainWindow
@@ -78,13 +81,11 @@ class LoginWindow(tk.Frame):
         self.__paddingFrame = Frame(mainWindow,bg=self.BACKGROUND_COLOR,width=150,height=150)
         self.__paddingFrame.pack()
 
-    """
-        Initializes the text fields and adds formatting to them
-        @param self
-    """
+    
 
     def __initializeEntryFields(self):
-    
+        """[summary]
+        """
         self.__usernameField = Entry(self, width=self.WIDTH, font=self.FONT)
         self.__usernameLabel = Label(self, text=self.DEFAULT_USERNAME_TEXT, bg=self.FOREGROUND_COLOR)
         self.__passwordLabel = Label(self, text=self.DEFAULT_PASSWORD_TEXT, bg=self.FOREGROUND_COLOR)
@@ -94,12 +95,11 @@ class LoginWindow(tk.Frame):
         self.__passwordField = Entry(self, width=self.WIDTH, font=self.FONT, show="*")
         self.__passwordField.pack(pady=self.PADDING)
 
-    """
-       Initializes the buttons and adds formatting to them
-       @param self
-    """
+    
 
     def __initializeButtons(self):
+        """[summary]
+        """
         self.__buttonFrame = Frame(self, bg=self.FOREGROUND_COLOR)
         self.__loginButton = Button(self.__buttonFrame, text=self.DEFAULT_login_BUTTON_TEXT, command=self.CheckPass,relief="flat")
 
@@ -110,13 +110,11 @@ class LoginWindow(tk.Frame):
 
         self.__buttonFrame.pack()
 
-    """
-        Function is called when the login button is pressed, validates the password to the stored file and 
-        will enter the DCM window if successful
-        @param self
-    """
+  
 
     def getText(self):
+        """[summary]
+        """
         self.__password = self.__passwordField.get()
         self.__username = self.__usernameField.get()
         # Code below is when there is a matching password and key, the program
@@ -124,10 +122,15 @@ class LoginWindow(tk.Frame):
         # --Note: figure out a way to only remove content pane instead of removing all elements in content pane
     
     def CheckPass(self):
-
+        """[summary]
+        """
         self.getText()
         alt=FileIO(self.PASSWORDFILE)
-        f=alt.readText()
+        f = alt.readText()
+        if not(f):
+           alt.writeText("")
+           f = ""
+
         if (self.__username == "" or self.__password == ""):
             messagebox.showinfo("Error: No Data Entered","NO DATA ENTERED")
         elif self.__username in f:
@@ -139,12 +142,10 @@ class LoginWindow(tk.Frame):
         else:
             messagebox.showinfo("User Validation","User not registered, Please Register User")
 
-    """
-        Function opens a frame to add new credentials if applicable
-        @param self
-    """
+    
     def registerUser(self):
-        """Test a"""
+        """[summary]
+        """
         alt=FileIO(self.PASSWORDFILE)
         d=alt.getlength()
         f = alt.readText()
@@ -160,23 +161,44 @@ class LoginWindow(tk.Frame):
             alt.writeText(text)
             messagebox.showinfo("User Registerd","User Successfully Registered")
     def getUsername(self):
+        """[summary]
+
+        Returns:
+            [type]: [description]
+        """
         return self.__username
     def clearVal(self):
+        """[summary]
+        """
         self.__usernameField.delete(0,END)
         self.__usernameField.pack()
         self.__passwordField.delete(0,END)
         self.__passwordField.pack()
     def setPaddingVisible(self):
+        """[summary]
+        """
         self.__paddingFrame.pack()
 
 
 class GraphWindow(tk.Frame):
+    """[summary]
+
+    Args:
+        tk ([type]): [description]
+    """
     __mainWindow=None
     def __init__(self, mainWindow):
+        """[summary]
+
+        Args:
+            mainWindow ([type]): [description]
+        """
         tk.Frame.__init__(self, mainWindow, bg="yellow", width="640", height="550")
         self.__mainWindow = mainWindow
         self.plot()
     def plot(self):
+        """[summary]
+        """
             fig = Figure(figsize=(4, 4),dpi=100)
             y = [math.sin(i/10) for i in range(1,200)]
             plot1 = fig.add_subplot(111)
@@ -186,6 +208,11 @@ class GraphWindow(tk.Frame):
             canvas.get_tk_widget().pack()
 
 class DCMWindow(tk.Frame):
+    """[summary]
+
+    Args:
+        tk ([type]): [description]
+    """
     # Constants
     PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Ventricular Amplitude","Atrial Pulsewidth","Ventricular Pulsewidth","Atrial Refractory Period","Ventricular Refractory Period"]
     LRL = [30,35,40,45,50]
@@ -218,12 +245,15 @@ class DCMWindow(tk.Frame):
     __comButton= None
     __consoleLog = None
     showState = ["readonly","readonly","readonly","readonly","readonly","readonly","readonly","readonly"]
-    """
-        Constructor
-        @param mainWindow
-    """
+   
 
     def __init__(self, mainWindow,username):
+        """[summary]
+
+        Args:
+            mainWindow ([type]): [description]
+            username ([type]): [description]
+        """
         tk.Frame.__init__(self,mainWindow,bg=self.BACKGROUND_COLOR,width=1280,height=600)
         self.__initalizeConstants()
         self.__mainWindow = mainWindow
@@ -257,11 +287,15 @@ class DCMWindow(tk.Frame):
         self.__logoutButton.grid(row=0, column=3,padx=230)
         self.__topFrame.pack()
     def __initalizeLeftFrame(self):
+        """[summary]
+        """
         self.__leftFrame = Frame(self.__centerFrame, bg=self.BACKGROUND_COLOR, width=640, height=550)
         self.__leftFrame.grid(row=0,column=0)
         self.__graphWindow = GraphWindow(self.__leftFrame)
         self.__graphWindow.pack()
     def __initalizeRightFrame(self):
+        """[summary]
+        """
         self.__rightFrame = Frame(self.__centerFrame, bg=self.BACKGROUND_COLOR, width=640, height=550)
         self.__rightFrame.grid(row=0,column=1)
         topRight = Frame(self.__rightFrame, bg=self.BACKGROUND_COLOR, width=640, height=275)
@@ -275,6 +309,8 @@ class DCMWindow(tk.Frame):
         self.__modeList.grid(row=0, column=0, padx=20, pady=20)
         self.__initalizeParameterList(bottomRight)
     def __initalizeBottomFrame(self):
+        """[summary]
+        """
         self.__bottomFrame = Frame(self, bg=self.BACKGROUND_COLOR, width=1280, height=10)
         self.__bottomFrame.pack()
         self.__consoleLog = Button(self.__bottomFrame,text="Send",command="",relief="flat", padx=100)
@@ -283,6 +319,8 @@ class DCMWindow(tk.Frame):
         #self.__consoleLog.pack(pady=10)
     
     def __modeSelect(self):
+        """[summary]
+        """
         if self.__modeList.get() == "AOO":
             self.__hideParameter(
                 ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "disabled", "disabled"])
@@ -297,10 +335,17 @@ class DCMWindow(tk.Frame):
                 ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "readonly"])
 
     def __hideParameter(self,showState):
+        """[summary]
+
+        Args:
+            showState ([type]): [description]
+        """
         for i in range(len(showState)):
             self.__entryArr[i].config(state = showState[i])
 
     def resetMode(self):
+        """[summary]
+        """
         self.__modeList.set("VOO")
         self.__hideParameter(["readonly", "readonly", "disabled", "readonly", "disabled", "disabled"])
         for item in self.__entryArr:
@@ -308,23 +353,33 @@ class DCMWindow(tk.Frame):
 
 
     def checkPort(self):
+        """[summary]
+        """
         if self.__comMode.get() == "COM8":
             print("COM8 Selected")
-            """self.__consoleLog.config(state="normal")
-            self.__consoleLog.insert(tk.END,"COM8 Connected\n")
-            self.__consoleLog.config(state="disabled")"""
+
         elif self.__comMode.get() == "COM9":
             print("COM9 Selected")
-            """self.__consoleLog.config(state="normal")
-            self.__consoleLog.insert(tk.END,"COM9 Connected\n")
-            self.__consoleLog.config(state="disabled")"""
+
 
     def logout(self):
+        """[summary]
+        """
         self.__mainWindow.logout()
     def setUsername(self,username):
+        """[summary]
+
+        Args:
+            username ([type]): [description]
+        """
         self.__usernameLabel.config(text="User: " +username)
     
     def __initalizeParameterList(self,higherFrame):
+        """[summary]
+
+        Args:
+            higherFrame ([type]): [description]
+        """
         #Initialzing all the parameter boxes
         for i in range(0,8,2):
             for j in range(2):
@@ -335,6 +390,8 @@ class DCMWindow(tk.Frame):
                 self.__entryArr.append(entry)
                 entry.grid(row=i+1,column=j,padx=20,pady=10)
     def __initalizeConstants(self):
+        """[summary]
+        """
         for i in range(40):
             self.LRL.append(51 + i)
         for i in range(17):
@@ -359,13 +416,15 @@ class DCMWindow(tk.Frame):
             self.VENTREFRAC.append(150 + 10 * i)
 
 
-"""
-The ContentWindow stores all the visual components of the DCM
-Extends tk.Frame
-"""
+
 
 
 class ContentWindow(tk.Frame):
+    """[summary]
+
+    Args:
+        tk ([type]): [description]
+    """
     # Static Variables
     WINWIDTH = 1000
     WINHEIGHT = 600
@@ -374,12 +433,14 @@ class ContentWindow(tk.Frame):
     __parent = None
     __DCM = None
     username = ""
-    """
-         Object Constructor
-         @param self
-    """
+
 
     def __init__(self,parent):
+        """[summary]
+
+        Args:
+            parent ([type]): [description]
+        """
         tk.Frame.__init__(self,parent)
         self.__parent=parent
         parent.title("DCM")
@@ -391,12 +452,16 @@ class ContentWindow(tk.Frame):
         self.__loginWindow.pack()
 
     def login(self):
+        """[summary]
+        """
         self.__loginWindow.pack_forget()
         self.username = self.__loginWindow.getUsername()
         self.__DCM.setUsername(self.username)
         self.__DCM.resetMode()
         self.__DCM.pack()
     def logout(self):
+        """[summary]
+        """
         self.__DCM.pack_forget()
         self.__loginWindow.clearVal()
         self.__loginWindow.setPaddingVisible()
