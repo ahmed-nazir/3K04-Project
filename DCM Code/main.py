@@ -8,9 +8,6 @@ NavigationToolbar2Tk)
 from IOStream import FileIO
 import math
 
-
-
-
 class Run:
     """
     The Run class is used to start the program
@@ -29,9 +26,6 @@ class Run:
 class LoginWindow(tk.Frame):
     """ Extends tk.Frame
         The LoginWindow is a subclass of tk.Frame that stores all the components of the login window. 
-
-    Returns:
-        [type]: [description]
     """
     # Variable Declaration
     # Constants
@@ -66,7 +60,7 @@ class LoginWindow(tk.Frame):
         """Object Constructor
 
         Args:
-            mainWindow (frame): the higher frame that stores the LoginWindow 
+            mainWindow (ContentWindow): the higher frame that stores the LoginWindow
         """
         tk.Frame.__init__(self, mainWindow, bg=self.FOREGROUND_COLOR, width=200, height=200, padx=self.PADDING, pady=self.PADDING, relief=tk.RIDGE, borderwidth=3)
         self.__mainWindow = mainWindow
@@ -176,7 +170,7 @@ class LoginWindow(tk.Frame):
         self.__passwordField.pack()
     
     def setPaddingVisible(self):
-        """[summary]
+        """ Helper function for formatting
         """
         self.__paddingFrame.pack()
 
@@ -250,7 +244,7 @@ class DCMWindow(tk.Frame):
         """Object Constructor
 
         Args:
-            mainWindow ([type]): the higher frame that stores the DCMWindow
+            mainWindow (ContentWindow): the higher frame that stores the DCMWindow
             username (string): stores the username
         """
         tk.Frame.__init__(self,mainWindow,bg=self.BACKGROUND_COLOR,width=1280,height=600)
@@ -375,10 +369,10 @@ class DCMWindow(tk.Frame):
         self.__usernameLabel.config(text="User: " +username)
     
     def __initalizeParameterList(self,higherFrame):
-        """[summary]
+        """ Creates a grid of labels and drop down menus for parameter value inputs
 
         Args:
-            higherFrame ([type]): [description]
+            higherFrame (tk.Frame): The higher level frame the components are stored in
         """
         #Initialzing all the parameter boxes
         for i in range(0,8,2):
@@ -390,7 +384,7 @@ class DCMWindow(tk.Frame):
                 self.__entryArr.append(entry)
                 entry.grid(row=i+1,column=j,padx=20,pady=10)
     def __initalizeConstants(self):
-        """[summary]
+        """ Helper function to create values for different parameter settings
         """
         for i in range(40):
             self.LRL.append(51 + i)
@@ -421,7 +415,8 @@ class DCMWindow(tk.Frame):
 
 class ContentWindow(tk.Frame):
     """ Extends tk.Frame
-        The ContentWindow is a subclass of tk.Frame that stores all the components of the Content Window. 
+        The ContentWindow is a subclass of tk.Frame that stores all the components of the Content Window.
+        The ContentWindow is used to manage the interactions of the other frames in the DCM.
     """
     # Static Variables
     WINWIDTH = 1000
@@ -436,8 +431,8 @@ class ContentWindow(tk.Frame):
     def __init__(self,parent):
         """Object Constructor
 
-        Args:
-            parent ([type]): [description]
+        Args: parent (tk.Tk): The top level frame holding the ContentWindow. Currently, this should be the
+        tk.Tk() as ContentWindow is a top level window manager
         """
         tk.Frame.__init__(self,parent)
         self.__parent=parent
@@ -450,7 +445,7 @@ class ContentWindow(tk.Frame):
         self.__loginWindow.pack()
 
     def login(self):
-        """[summary]
+        """ The method disables the login window screen and enables the DCM interface, along with formatting
         """
         self.__loginWindow.pack_forget()
         self.username = self.__loginWindow.getUsername()
@@ -458,7 +453,7 @@ class ContentWindow(tk.Frame):
         self.__DCM.resetMode()
         self.__DCM.pack()
     def logout(self):
-        """[summary]
+        """ The method disables the DCM interface and enables the login window screen, along with formatting
         """
         self.__DCM.pack_forget()
         self.__loginWindow.clearVal()
@@ -468,4 +463,3 @@ class ContentWindow(tk.Frame):
 # Main script
 if __name__ == "__main__":
     run = Run()
-
