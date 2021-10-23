@@ -27,10 +27,8 @@ class Run:
 
 
 class LoginWindow(tk.Frame):
-    """[summary]
-
-    Args:
-        tk ([type]): [description]
+    """ Extends tk.Frame
+        The LoginWindow is a subclass of tk.Frame that stores all the components of the login window. 
 
     Returns:
         [type]: [description]
@@ -65,10 +63,10 @@ class LoginWindow(tk.Frame):
 
 
     def __init__(self, mainWindow):
-        """[summary]
+        """Object Constructor
 
         Args:
-            mainWindow ([type]): [description]
+            mainWindow (frame): the higher frame that stores the LoginWindow 
         """
         tk.Frame.__init__(self, mainWindow, bg=self.FOREGROUND_COLOR, width=200, height=200, padx=self.PADDING, pady=self.PADDING, relief=tk.RIDGE, borderwidth=3)
         self.__mainWindow = mainWindow
@@ -84,7 +82,7 @@ class LoginWindow(tk.Frame):
     
 
     def __initializeEntryFields(self):
-        """[summary]
+        """Initializes entry field for user login window
         """
         self.__usernameField = Entry(self, width=self.WIDTH, font=self.FONT)
         self.__usernameLabel = Label(self, text=self.DEFAULT_USERNAME_TEXT, bg=self.FOREGROUND_COLOR)
@@ -98,7 +96,7 @@ class LoginWindow(tk.Frame):
     
 
     def __initializeButtons(self):
-        """[summary]
+        """Initializes the buttons to login and register a user
         """
         self.__buttonFrame = Frame(self, bg=self.FOREGROUND_COLOR)
         self.__loginButton = Button(self.__buttonFrame, text=self.DEFAULT_login_BUTTON_TEXT, command=self.CheckPass,relief="flat")
@@ -113,7 +111,7 @@ class LoginWindow(tk.Frame):
   
 
     def getText(self):
-        """[summary]
+        """Gets the user input variables in the login screen and stores in the class username and password fields
         """
         self.__password = self.__passwordField.get()
         self.__username = self.__usernameField.get()
@@ -122,7 +120,7 @@ class LoginWindow(tk.Frame):
         # --Note: figure out a way to only remove content pane instead of removing all elements in content pane
     
     def CheckPass(self):
-        """[summary]
+        """Checks whether the credentials the user inputted is correct. Calls the higher frame window’s login function if successful. 
         """
         self.getText()
         alt=FileIO(self.PASSWORDFILE)
@@ -144,7 +142,7 @@ class LoginWindow(tk.Frame):
 
     
     def registerUser(self):
-        """[summary]
+        """Registers a new user and checks whether a user already exists
         """
         alt=FileIO(self.PASSWORDFILE)
         d=alt.getlength()
@@ -160,20 +158,23 @@ class LoginWindow(tk.Frame):
         else:
             alt.writeText(text)
             messagebox.showinfo("User Registerd","User Successfully Registered")
+    
     def getUsername(self):
-        """[summary]
+        """Returns the username of the current user
 
         Returns:
-            [type]: [description]
+            __username (string): returns the username value
         """
         return self.__username
+    
     def clearVal(self):
-        """[summary]
+        """Clears the entry fields in LoginWindow
         """
         self.__usernameField.delete(0,END)
         self.__usernameField.pack()
         self.__passwordField.delete(0,END)
         self.__passwordField.pack()
+    
     def setPaddingVisible(self):
         """[summary]
         """
@@ -181,37 +182,35 @@ class LoginWindow(tk.Frame):
 
 
 class GraphWindow(tk.Frame):
-    """[summary]
-
-    Args:
-        tk ([type]): [description]
+    """ Extends tk.Frame
+        The GraphWindow is a subclass of tk.Frame that stores all the components of the graph
     """
     __mainWindow=None
+
     def __init__(self, mainWindow):
-        """[summary]
+        """Object Constructor
 
         Args:
-            mainWindow ([type]): [description]
+            mainWindow (frame): the higher frame that stores the LoginWindow
         """
         tk.Frame.__init__(self, mainWindow, bg="yellow", width="640", height="550")
         self.__mainWindow = mainWindow
         self.plot()
+    
     def plot(self):
-        """[summary]
+        """Draws the graph in the DCM window
         """
-            fig = Figure(figsize=(4, 4),dpi=100)
-            y = [math.sin(i/10) for i in range(1,200)]
-            plot1 = fig.add_subplot(111)
-            plot1.plot(y)
-            canvas = FigureCanvasTkAgg(fig,master=self)
-            canvas.draw()
-            canvas.get_tk_widget().pack()
+        fig = Figure(figsize=(4, 4),dpi=100)
+        y = [math.sin(i/10) for i in range(1,200)]
+        plot1 = fig.add_subplot(111)
+        plot1.plot(y)
+        canvas = FigureCanvasTkAgg(fig,master=self)
+        canvas.draw()
+        canvas.get_tk_widget().pack()
 
 class DCMWindow(tk.Frame):
-    """[summary]
-
-    Args:
-        tk ([type]): [description]
+    """ Extends tk.Frame
+        The DCMWindow is a subclass of tk.Frame that stores all the components of the DCM Window. 
     """
     # Constants
     PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Ventricular Amplitude","Atrial Pulsewidth","Ventricular Pulsewidth","Atrial Refractory Period","Ventricular Refractory Period"]
@@ -248,11 +247,11 @@ class DCMWindow(tk.Frame):
    
 
     def __init__(self, mainWindow,username):
-        """[summary]
+        """Object Constructor
 
         Args:
-            mainWindow ([type]): [description]
-            username ([type]): [description]
+            mainWindow ([type]): the higher frame that stores the DCMWindow
+            username (string): stores the username
         """
         tk.Frame.__init__(self,mainWindow,bg=self.BACKGROUND_COLOR,width=1280,height=600)
         self.__initalizeConstants()
@@ -268,17 +267,14 @@ class DCMWindow(tk.Frame):
         self.__initalizeBottomFrame()
 
     def __initalizeTopFrame(self,username):
-        """Initializes top frame
+        """Initializes top frame of the DCM Window
 
         Args:
-            username (string): stores username
+            username (string): stores the username
         """
         self.__topFrame = Frame(self, bg=self.BACKGROUND_COLOR, width=1280, height=50)
-
         self.__usernameLabel = Label(self.__topFrame,text="User: "+username,bg=self.BACKGROUND_COLOR)
         self.__usernameLabel.grid(row=0,column=0,padx=110)
-
-        #self.__comMode = OptionMenu(self.__topFrame, self.__currentPort, *self.SERIALCOMMODE)
         self.__comMode = ttk.Combobox(self.__topFrame, values= self.SERIALCOMMODE,state = "readonly")
         self.__comMode.grid(row=0,column=1,padx=5)
         self.__comButton = Button(self.__topFrame, text="Connect",bg="red", command=self.checkPort, relief="flat", padx=20)
@@ -286,15 +282,16 @@ class DCMWindow(tk.Frame):
         self.__logoutButton = Button(self.__topFrame, text="Logout", command=self.logout, relief="flat", padx=20)
         self.__logoutButton.grid(row=0, column=3,padx=230)
         self.__topFrame.pack()
+
     def __initalizeLeftFrame(self):
-        """[summary]
+        """Initializes left frame of the DCM Window
         """
         self.__leftFrame = Frame(self.__centerFrame, bg=self.BACKGROUND_COLOR, width=640, height=550)
         self.__leftFrame.grid(row=0,column=0)
         self.__graphWindow = GraphWindow(self.__leftFrame)
         self.__graphWindow.pack()
     def __initalizeRightFrame(self):
-        """[summary]
+        """Initializes right frame of the DCM Window
         """
         self.__rightFrame = Frame(self.__centerFrame, bg=self.BACKGROUND_COLOR, width=640, height=550)
         self.__rightFrame.grid(row=0,column=1)
@@ -309,7 +306,7 @@ class DCMWindow(tk.Frame):
         self.__modeList.grid(row=0, column=0, padx=20, pady=20)
         self.__initalizeParameterList(bottomRight)
     def __initalizeBottomFrame(self):
-        """[summary]
+        """Initializes bottom frame of the DCM Window
         """
         self.__bottomFrame = Frame(self, bg=self.BACKGROUND_COLOR, width=1280, height=10)
         self.__bottomFrame.pack()
@@ -319,7 +316,7 @@ class DCMWindow(tk.Frame):
         #self.__consoleLog.pack(pady=10)
     
     def __modeSelect(self):
-        """[summary]
+        """Mode selector between different Heart modes (AOO,AAI,VOO,VVI)
         """
         if self.__modeList.get() == "AOO":
             self.__hideParameter(
@@ -335,42 +332,45 @@ class DCMWindow(tk.Frame):
                 ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "readonly"])
 
     def __hideParameter(self,showState):
-        """[summary]
+        """Changes that status of the drop-down selector for each parameter
 
         Args:
-            showState ([type]): [description]
+            showState (array): array of values setting the buttons active or inactive eg. [“readonly”]
         """
         for i in range(len(showState)):
             self.__entryArr[i].config(state = showState[i])
 
     def resetMode(self):
-        """[summary]
+        """Reset the bradycardia state back to VOO
         """
         self.__modeList.set("VOO")
-        self.__hideParameter(["readonly", "readonly", "disabled", "readonly", "disabled", "disabled"])
+        self.__hideParameter(["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled"])
         for item in self.__entryArr:
             item.set("")
 
 
     def checkPort(self):
-        """[summary]
+        """Checks which port is selected
         """
         if self.__comMode.get() == "COM8":
             print("COM8 Selected")
+            self.comButton.config(bg="#90ee90")
 
         elif self.__comMode.get() == "COM9":
             print("COM9 Selected")
+            self.comButton.config(bg="red")
 
 
     def logout(self):
-        """[summary]
+        """Logs out of the main interface
         """
         self.__mainWindow.logout()
+
     def setUsername(self,username):
-        """[summary]
+        """Shows the username of the current user on the top left of the DCM window
 
         Args:
-            username ([type]): [description]
+            username (string): stores the username
         """
         self.__usernameLabel.config(text="User: " +username)
     
@@ -420,10 +420,8 @@ class DCMWindow(tk.Frame):
 
 
 class ContentWindow(tk.Frame):
-    """[summary]
-
-    Args:
-        tk ([type]): [description]
+    """ Extends tk.Frame
+        The ContentWindow is a subclass of tk.Frame that stores all the components of the Content Window. 
     """
     # Static Variables
     WINWIDTH = 1000
@@ -436,7 +434,7 @@ class ContentWindow(tk.Frame):
 
 
     def __init__(self,parent):
-        """[summary]
+        """Object Constructor
 
         Args:
             parent ([type]): [description]
