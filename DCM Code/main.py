@@ -45,7 +45,7 @@ class LoginWindow(tk.Frame):
     PADDING = 10
     BACKGROUND_COLOR = "#FAF9F6"
     FOREGROUND_COLOR = "#C0C0C0"
-    PASSWORDFILE = "password.json"
+    PASSWORDFILE = "DCM Code\password.json"
 
     # Private Variables
     __root = None
@@ -84,6 +84,7 @@ class LoginWindow(tk.Frame):
     """
 
     def __initializeEntryFields(self):
+    
         self.__usernameField = Entry(self, width=self.WIDTH, font=self.FONT)
         self.__usernameLabel = Label(self, text=self.DEFAULT_USERNAME_TEXT, bg=self.FOREGROUND_COLOR)
         self.__passwordLabel = Label(self, text=self.DEFAULT_PASSWORD_TEXT, bg=self.FOREGROUND_COLOR)
@@ -143,6 +144,7 @@ class LoginWindow(tk.Frame):
         @param self
     """
     def registerUser(self):
+        """Test a"""
         alt=FileIO(self.PASSWORDFILE)
         d=alt.getlength()
         f = alt.readText()
@@ -194,7 +196,7 @@ class DCMWindow(tk.Frame):
     VENTWIDTH = [0.05]
     ATRREFRAC = []
     VENTREFRAC = []
-    
+    # Sets the values of each parameter
     for i in range(40):
         LRL.append(51+i)
     for i in range(17):
@@ -224,7 +226,7 @@ class DCMWindow(tk.Frame):
     MODELABELS = ["AOO", "VOO", "AAI", "VVI"]
     #The following variable is a placeholder before serial communication is implemented
     BACKGROUND_COLOR = "#FAF9F6"
-    SERIALCOMMODE = {"COM8","COM9"}
+    SERIALCOMMODE = ["COM8","COM9"]
     # Padding is in PX
     PADDING = 20
     # Private Variables
@@ -260,12 +262,18 @@ class DCMWindow(tk.Frame):
         self.initalizeBottomFrame()
 
     def initalizeTopFrame(self,username):
+        """Initializes top frame
+
+        Args:
+            username (string): stores username
+        """
         self.__topFrame = Frame(self, bg=self.BACKGROUND_COLOR, width=1280, height=50)
 
         self.__usernameLabel = Label(self.__topFrame,text="User: "+username,bg=self.BACKGROUND_COLOR)
-        self.__usernameLabel.grid(row=0,column=0,padx=230)
+        self.__usernameLabel.grid(row=0,column=0,padx=110)
 
-        self.__comMode = OptionMenu(self.__topFrame, self.__currentPort, *self.SERIALCOMMODE)
+        #self.__comMode = OptionMenu(self.__topFrame, self.__currentPort, *self.SERIALCOMMODE)
+        self.__comMode = ttk.Combobox(self.__topFrame, values= self.SERIALCOMMODE,state = "readonly")
         self.__comMode.grid(row=0,column=1,padx=5)
         self.__comButton = Button(self.__topFrame, text="Connect",bg="red", command=self.checkPort, relief="flat", padx=20)
         self.__comButton.grid(row=0,column=2,padx=5)
@@ -293,42 +301,51 @@ class DCMWindow(tk.Frame):
     def initalizeBottomFrame(self):
         self.__bottomFrame = Frame(self, bg=self.BACKGROUND_COLOR, width=1280, height=10)
         self.__bottomFrame.pack()
-        self.__consoleLog = Text(self.__bottomFrame,width=100,height=5,state="disabled")
-        self.__consoleLog.pack(pady=10)
+        self.__consoleLog = Button(self.__bottomFrame,text="Send",command="",relief="flat", padx=100)
+        self.__consoleLog.grid(row=0, column=1, padx=20, pady=20)
+        #self.__consoleLog = Text(self.__bottomFrame,width=100,height=5,state="disabled")
+        #self.__consoleLog.pack(pady=10)
     
     def modeSelect(self):
         if self.__modeList.get() == "AOO":
-            self.TestFunction(["readonly","readonly","readonly","disabled","disabled","disabled"])
+            self.hideParameter(["readonly","readonly","readonly","disabled","readonly","disabled","disabled","disabled"])
         elif self.__modeList.get() == "AAI":
-            self.TestFunction(["readonly","readonly","readonly","disabled","readonly","disabled"])
+            self.hideParameter(["readonly","readonly","readonly","disabled","readonly","disabled","readonly","disabled"])
         elif self.__modeList.get() == "VOO":
-            self.TestFunction(["readonly","readonly","disabled","readonly","disabled","disabled"])
+            self.hideParameter(["readonly","readonly","disabled","readonly","disabled","readonly","disabled","disabled"])
         elif self.__modeList.get() == "VVI":
-            self.TestFunction(["readonly","readonly","disabled","readonly","disabled","readonly"])
+            self.hideParameter(["readonly","readonly","disabled","readonly","disabled","readonly","disabled","readonly"])
 
-    def TestFunction(self,showState):
+    def hideParameter(self,showState):
         for i in range(len(showState)):
             self.__entryArr[i].config(state = showState[i])
 
     def resetMode(self):
         self.__modeList.set("VOO")
-        self.TestFunction(["readonly","readonly","disabled","readonly","disabled","disabled"])
+        self.hideParameter(["readonly","readonly","disabled","readonly","disabled","disabled"])
         for item in self.__entryArr:
             item.set("")
 
 
     def checkPort(self):
-       # code for checking IO without pacemaker
-        if self.__currentPort.get() == "COM8":
-            self.__comButton.config(bg="#90ee90")
-        else:
-            self.__comButton.config(bg="red")
+        if self.__comMode.get() == "COM8":
+            print("COM8 Selected")
+            """self.__consoleLog.config(state="normal")
+            self.__consoleLog.insert(tk.END,"COM8 Connected\n")
+            self.__consoleLog.config(state="disabled")"""
+        elif self.__comMode.get() == "COM9":
+            print("COM9 Selected")
+            """self.__consoleLog.config(state="normal")
+            self.__consoleLog.insert(tk.END,"COM9 Connected\n")
+            self.__consoleLog.config(state="disabled")"""
 
     def logout(self):
         self.__mainWindow.logout()
     def setUsername(self,username):
         self.__usernameLabel.config(text="User: " +username)
+    
     def initalizeParameterList(self,higherFrame):
+        #Initialzing all the parameter boxes
         for i in range(0,8,2):
             for j in range(2):
                 label=Label(higherFrame,text=self.PARAMLABELS[i+j],bg=self.BACKGROUND_COLOR)
@@ -362,7 +379,8 @@ class ContentWindow(tk.Frame):
         tk.Frame.__init__(self,parent)
         self.parent=parent
         parent.title("DCM")
-        parent.geometry("1280x600")
+        parent.geometry("1000x600")
+        parent.resizable(False,False)
         parent.config(bg='#FAF9F6')
         self.loginWindow = LoginWindow(self)
         self.DCM = DCMWindow(self,self.username)
