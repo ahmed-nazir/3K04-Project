@@ -27,7 +27,7 @@ class Run:
         cw.mainloop()
 
 """
-    The LoginWindow class is the the inital interface in viewing the program
+    The LoginWindow class is the the initial interface in viewing the program
     Extends tk.Frame  
 """
 
@@ -45,7 +45,7 @@ class LoginWindow(tk.Frame):
     PADDING = 10
     BACKGROUND_COLOR = "#FAF9F6"
     FOREGROUND_COLOR = "#C0C0C0"
-    PASSWORDFILE = "DCM Code\password.json"
+    PASSWORDFILE = "password.json"
 
     # Private Variables
     __root = None
@@ -196,31 +196,6 @@ class DCMWindow(tk.Frame):
     VENTWIDTH = [0.05]
     ATRREFRAC = []
     VENTREFRAC = []
-    # Sets the values of each parameter
-    for i in range(40):
-        LRL.append(51+i)
-    for i in range(17):
-        LRL.append(95+5*i)
-
-    for i in range(26):
-        URL.append(50 + i*5)
-
-    for i in range(28):
-        ATRAMP.append(round(0.5 + 0.1*i,1))
-        VENTAMP.append(round(0.5 + 0.1*i,1))
-    for i in range(8):
-        ATRAMP.append(round(3.5 + 0.5*i,1))
-        VENTAMP.append(round(3.5 + 0.5*i,1))
-    
-    for i in range(19):
-        ATRWIDTH.append(round(0.1 + i*0.1,1))
-        VENTWIDTH.append(round(0.1 + i*0.1,1))
-
-    for i in range(36):
-        ATRREFRAC.append(150 + 10*i)
-        VENTREFRAC.append(150 + 10*i)
-
-
     PROGRAMABLEPARAMETERS = [LRL,URL,ATRAMP,VENTAMP,ATRWIDTH,VENTWIDTH,ATRREFRAC,VENTREFRAC]
 
     MODELABELS = ["AOO", "VOO", "AAI", "VVI"]
@@ -250,18 +225,19 @@ class DCMWindow(tk.Frame):
 
     def __init__(self, mainWindow,username):
         tk.Frame.__init__(self,mainWindow,bg=self.BACKGROUND_COLOR,width=1280,height=600)
+        self.__initalizeConstants()
         self.__mainWindow = mainWindow
         self.__mainWindow.focus_set()
         self.__currentMode=StringVar(self)
         self.__currentPort = StringVar(self)
-        self.initalizeTopFrame(username)
+        self.__initalizeTopFrame(username)
         self.__centerFrame = Frame(self,bg=self.BACKGROUND_COLOR,width=1280,height=550)
         self.__centerFrame.pack()
-        self.initalizeLeftFrame()
-        self.initalizeRightFrame()
-        self.initalizeBottomFrame()
+        self.__initalizeLeftFrame()
+        self.__initalizeRightFrame()
+        self.__initalizeBottomFrame()
 
-    def initalizeTopFrame(self,username):
+    def __initalizeTopFrame(self,username):
         """Initializes top frame
 
         Args:
@@ -280,25 +256,25 @@ class DCMWindow(tk.Frame):
         self.__logoutButton = Button(self.__topFrame, text="Logout", command=self.logout, relief="flat", padx=20)
         self.__logoutButton.grid(row=0, column=3,padx=230)
         self.__topFrame.pack()
-    def initalizeLeftFrame(self):
+    def __initalizeLeftFrame(self):
         self.__leftFrame = Frame(self.__centerFrame, bg=self.BACKGROUND_COLOR, width=640, height=550)
         self.__leftFrame.grid(row=0,column=0)
         self.__graphWindow = GraphWindow(self.__leftFrame)
         self.__graphWindow.pack()
-    def initalizeRightFrame(self):
+    def __initalizeRightFrame(self):
         self.__rightFrame = Frame(self.__centerFrame, bg=self.BACKGROUND_COLOR, width=640, height=550)
         self.__rightFrame.grid(row=0,column=1)
         topRight = Frame(self.__rightFrame, bg=self.BACKGROUND_COLOR, width=640, height=275)
         bottomRight = Frame(self.__rightFrame, bg=self.BACKGROUND_COLOR, width=640, height=275)
         topRight.pack()
         bottomRight.pack()
-        self.__saveButton = Button(topRight, text="Select Mode", command=self.modeSelect, relief="flat", padx=20)
+        self.__saveButton = Button(topRight, text="Select Mode", command=self.__modeSelect, relief="flat", padx=20)
         self.__saveButton.grid(row=0, column=1, padx=20, pady=20)
         #self.__modeList = OptionMenu(topRight, self.__currentMode, *self.MODELABELS)
         self.__modeList = ttk.Combobox(topRight,values = self.MODELABELS,state="readonly")
         self.__modeList.grid(row=0, column=0, padx=20, pady=20)
-        self.initalizeParameterList(bottomRight)
-    def initalizeBottomFrame(self):
+        self.__initalizeParameterList(bottomRight)
+    def __initalizeBottomFrame(self):
         self.__bottomFrame = Frame(self, bg=self.BACKGROUND_COLOR, width=1280, height=10)
         self.__bottomFrame.pack()
         self.__consoleLog = Button(self.__bottomFrame,text="Send",command="",relief="flat", padx=100)
@@ -306,23 +282,27 @@ class DCMWindow(tk.Frame):
         #self.__consoleLog = Text(self.__bottomFrame,width=100,height=5,state="disabled")
         #self.__consoleLog.pack(pady=10)
     
-    def modeSelect(self):
+    def __modeSelect(self):
         if self.__modeList.get() == "AOO":
-            self.hideParameter(["readonly","readonly","readonly","disabled","readonly","disabled","disabled","disabled"])
+            self.__hideParameter(
+                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "disabled", "disabled"])
         elif self.__modeList.get() == "AAI":
-            self.hideParameter(["readonly","readonly","readonly","disabled","readonly","disabled","readonly","disabled"])
+            self.__hideParameter(
+                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled"])
         elif self.__modeList.get() == "VOO":
-            self.hideParameter(["readonly","readonly","disabled","readonly","disabled","readonly","disabled","disabled"])
+            self.__hideParameter(
+                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled"])
         elif self.__modeList.get() == "VVI":
-            self.hideParameter(["readonly","readonly","disabled","readonly","disabled","readonly","disabled","readonly"])
+            self.__hideParameter(
+                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "readonly"])
 
-    def hideParameter(self,showState):
+    def __hideParameter(self,showState):
         for i in range(len(showState)):
             self.__entryArr[i].config(state = showState[i])
 
     def resetMode(self):
         self.__modeList.set("VOO")
-        self.hideParameter(["readonly","readonly","disabled","readonly","disabled","disabled"])
+        self.__hideParameter(["readonly", "readonly", "disabled", "readonly", "disabled", "disabled"])
         for item in self.__entryArr:
             item.set("")
 
@@ -344,7 +324,7 @@ class DCMWindow(tk.Frame):
     def setUsername(self,username):
         self.__usernameLabel.config(text="User: " +username)
     
-    def initalizeParameterList(self,higherFrame):
+    def __initalizeParameterList(self,higherFrame):
         #Initialzing all the parameter boxes
         for i in range(0,8,2):
             for j in range(2):
@@ -354,8 +334,29 @@ class DCMWindow(tk.Frame):
                 label.grid(row=i,column=j,padx=20,pady=10)
                 self.__entryArr.append(entry)
                 entry.grid(row=i+1,column=j,padx=20,pady=10)
+    def __initalizeConstants(self):
+        for i in range(40):
+            self.LRL.append(51 + i)
+        for i in range(17):
+            self.LRL.append(95 + 5 * i)
 
+        for i in range(26):
+            self.URL.append(50 + i * 5)
 
+        for i in range(28):
+            self.ATRAMP.append(round(0.5 + 0.1 * i, 1))
+            self.VENTAMP.append(round(0.5 + 0.1 * i, 1))
+        for i in range(8):
+            self.ATRAMP.append(round(3.5 + 0.5 * i, 1))
+            self.VENTAMP.append(round(3.5 + 0.5 * i, 1))
+
+        for i in range(19):
+            self.ATRWIDTH.append(round(0.1 + i * 0.1, 1))
+            self.VENTWIDTH.append(round(0.1 + i * 0.1, 1))
+
+        for i in range(36):
+            self.ATRREFRAC.append(150 + 10 * i)
+            self.VENTREFRAC.append(150 + 10 * i)
 
 
 """
@@ -365,10 +366,13 @@ Extends tk.Frame
 
 
 class ContentWindow(tk.Frame):
-    # Variables
-    loginWindow = None
-    parent = None
-    DCM = None
+    # Static Variables
+    WINWIDTH = 1000
+    WINHEIGHT = 600
+    # Private Variables
+    __loginWindow = None
+    __parent = None
+    __DCM = None
     username = ""
     """
          Object Constructor
@@ -377,26 +381,26 @@ class ContentWindow(tk.Frame):
 
     def __init__(self,parent):
         tk.Frame.__init__(self,parent)
-        self.parent=parent
+        self.__parent=parent
         parent.title("DCM")
         parent.geometry("1000x600")
         parent.resizable(False,False)
         parent.config(bg='#FAF9F6')
-        self.loginWindow = LoginWindow(self)
-        self.DCM = DCMWindow(self,self.username)
-        self.loginWindow.pack()
+        self.__loginWindow = LoginWindow(self)
+        self.__DCM = DCMWindow(self,self.username)
+        self.__loginWindow.pack()
 
     def login(self):
-        self.loginWindow.pack_forget()
-        self.username = self.loginWindow.getUsername()
-        self.DCM.setUsername(self.username)
-        self.DCM.resetMode()
-        self.DCM.pack()
+        self.__loginWindow.pack_forget()
+        self.username = self.__loginWindow.getUsername()
+        self.__DCM.setUsername(self.username)
+        self.__DCM.resetMode()
+        self.__DCM.pack()
     def logout(self):
-        self.DCM.pack_forget()
-        self.loginWindow.clearVal()
-        self.loginWindow.setPaddingVisible()
-        self.loginWindow.pack()
+        self.__DCM.pack_forget()
+        self.__loginWindow.clearVal()
+        self.__loginWindow.setPaddingVisible()
+        self.__loginWindow.pack()
 
 # Main script
 if __name__ == "__main__":
