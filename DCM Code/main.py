@@ -14,6 +14,8 @@ class Run:
     """
 
     def __init__(self):
+        """Object Constructor
+        """
         root = tk.Tk()
         # The login window object is created
         cw=ContentWindow(root)
@@ -34,7 +36,7 @@ class LoginWindow(tk.Frame):
     FONT = ("Arial", 12)
     DEFAULT_USERNAME_TEXT = "Username"
     DEFAULT_PASSWORD_TEXT = "Password"
-    DEFAULT_login_BUTTON_TEXT = "Login"
+    DEFAULT_LOGIN_BUTTON_TEXT = "Login"
     DEFAULT_REGISTER_BUTTON_TEXT = "Register"
     PADDING = 10
     BACKGROUND_COLOR = "#FAF9F6"
@@ -42,7 +44,6 @@ class LoginWindow(tk.Frame):
     PASSWORDFILE = "password.json"
 
     # Private Variables
-    __root = None
     __mainWindow = None
     __usernameField = None
     __passwordField = None
@@ -50,7 +51,6 @@ class LoginWindow(tk.Frame):
     __registerButton = None
     __password = None
     __username = None
-    __contentPane = None
     __buttonFrame = None
     __paddingFrame = None
     # Public Variables
@@ -64,12 +64,10 @@ class LoginWindow(tk.Frame):
         """
         tk.Frame.__init__(self, mainWindow, bg=self.FOREGROUND_COLOR, width=200, height=200, padx=self.PADDING, pady=self.PADDING, relief=tk.RIDGE, borderwidth=3)
         self.__mainWindow = mainWindow
-        self.__root = mainWindow
         # Initialize components of frame
         self.__initializeEntryFields()
         self.__initializeButtons()
         # Initialize frame properties
-        self.__root.config(bg=self.BACKGROUND_COLOR)
         self.__paddingFrame = Frame(mainWindow,bg=self.BACKGROUND_COLOR,width=150,height=150)
         self.__paddingFrame.pack()
 
@@ -93,7 +91,7 @@ class LoginWindow(tk.Frame):
         """Initializes the buttons to login and register a user
         """
         self.__buttonFrame = Frame(self, bg=self.FOREGROUND_COLOR)
-        self.__loginButton = Button(self.__buttonFrame, text=self.DEFAULT_login_BUTTON_TEXT, command=self.CheckPass,relief="flat")
+        self.__loginButton = Button(self.__buttonFrame, text=self.DEFAULT_LOGIN_BUTTON_TEXT, command=self.CheckPass,relief="flat")
 
         self.__loginButton.grid(row=0, column=0, padx=5, pady=10)
 
@@ -217,13 +215,13 @@ class DCMWindow(tk.Frame):
     ATRREFRAC = []
     VENTREFRAC = []
     PROGRAMABLEPARAMETERS = [LRL,URL,ATRAMP,VENTAMP,ATRWIDTH,VENTWIDTH,ATRREFRAC,VENTREFRAC]
+    PARAMETERFILE = "parameters.json"
 
     MODELABELS = ["AOO", "VOO", "AAI", "VVI"]
     #The following variable is a placeholder before serial communication is implemented
     BACKGROUND_COLOR = "#FAF9F6"
     SERIALCOMMODE = ["COM8","COM9"]
-    # Padding is in PX
-    PADDING = 20
+
     # Private Variables
     __mainWindow = None
     __labelArr=[]
@@ -237,7 +235,8 @@ class DCMWindow(tk.Frame):
     __logoutButton = None
     __comButton= None
     __consoleLog = None
-    showState = ["readonly","readonly","readonly","readonly","readonly","readonly","readonly","readonly"]
+    __buttonSend = None
+    __showState = ["readonly","readonly","readonly","readonly","readonly","readonly","readonly","readonly"]
    
 
     def __init__(self, mainWindow,username):
@@ -251,7 +250,7 @@ class DCMWindow(tk.Frame):
         self.__initalizeConstants()
         self.__mainWindow = mainWindow
         self.__mainWindow.focus_set()
-        self.__currentMode=StringVar(self)
+        self.__currentMode=""
         self.__currentPort = StringVar(self)
         self.__initalizeTopFrame(username)
         self.__centerFrame = Frame(self,bg=self.BACKGROUND_COLOR,width=1280,height=550)
@@ -304,26 +303,31 @@ class DCMWindow(tk.Frame):
         """
         self.__bottomFrame = Frame(self, bg=self.BACKGROUND_COLOR, width=1280, height=10)
         self.__bottomFrame.pack()
-        self.__consoleLog = Button(self.__bottomFrame,text="Send",command="",relief="flat", padx=100)
-        self.__consoleLog.grid(row=0, column=1, padx=20, pady=20)
+        self.__buttonSend = Button(self.__bottomFrame,text="Send",command=self.__saveParameters,relief="flat", padx=100)
+        self.__buttonSend.grid(row=0, column=1, padx=20, pady=20)
         #self.__consoleLog = Text(self.__bottomFrame,width=100,height=5,state="disabled")
         #self.__consoleLog.pack(pady=10)
     
     def __modeSelect(self):
         """Mode selector between different Heart modes (AOO,AAI,VOO,VVI)
         """
+
         if self.__modeList.get() == "AOO":
             self.__hideParameter(
                 ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "disabled", "disabled"])
+            self.__currentMode = "AOO"
         elif self.__modeList.get() == "AAI":
             self.__hideParameter(
                 ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled"])
+            self.__currentMode = "AII"
         elif self.__modeList.get() == "VOO":
             self.__hideParameter(
                 ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled"])
+            self.__currentMode = "VOO"
         elif self.__modeList.get() == "VVI":
             self.__hideParameter(
                 ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "readonly"])
+            self.__currentMode = "VVI"
 
     def __hideParameter(self,showState):
         """Changes that status of the drop-down selector for each parameter
@@ -333,6 +337,25 @@ class DCMWindow(tk.Frame):
         """
         for i in range(len(showState)):
             self.__entryArr[i].config(state = showState[i])
+
+    def __saveParameters(self):
+        """Exports the sent parameters to an external json file
+        """
+        alt = FileIO(self.PARAMETERFILE)
+        f = alt.readText()
+        if not(f):
+           alt.writeText("")
+           f = ""
+        for i in range(8):
+            alt.writeText({self.PARAMLABELS[i]:""})
+        alt.writeText({"Mode":self.__currentMode})
+        for i in range(8):
+            print(self.__entryArr[i]["state"])
+            if (self.__entryArr[i]["state"] == "readonly"):
+                text = {self.PARAMLABELS[i]:self.__entryArr[i].get()}
+                alt.writeText(text)
+
+
 
     def resetMode(self):
         """Reset the bradycardia state back to VOO
@@ -348,11 +371,11 @@ class DCMWindow(tk.Frame):
         """
         if self.__comMode.get() == "COM8":
             print("COM8 Selected")
-            self.comButton.config(bg="#90ee90")
+            self.__comButton.config(bg="#90ee90")
 
         elif self.__comMode.get() == "COM9":
             print("COM9 Selected")
-            self.comButton.config(bg="red")
+            self.__comButton.config(bg="red")
 
 
     def logout(self):
@@ -418,13 +441,13 @@ class ContentWindow(tk.Frame):
         The ContentWindow is a subclass of tk.Frame that stores all the components of the Content Window.
         The ContentWindow is used to manage the interactions of the other frames in the DCM.
     """
-    # Static Variables
-    WINWIDTH = 1000
-    WINHEIGHT = 600
+
     # Private Variables
     __loginWindow = None
     __parent = None
     __DCM = None
+
+    # Public Variable
     username = ""
 
 

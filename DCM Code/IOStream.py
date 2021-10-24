@@ -5,23 +5,30 @@ import json
 import os
 
 class FileIO:
+    """Class used for storing, writing, and reading files
+    """
     # Variable Declaration
     # Constants
     # Private Variables
     __fileName = ""
-    __mode = ''
-    # Public Variables
-    """
-        Object Constructor
-        @param self
-        @param fileName string: The name of the file for file I/O
-        @param mode char: Specifies if the file is in read(r) or write(w) mode
-    """
+
+
 
     def __init__(self, fileName):
+        """Object Contructor
+
+        Args:
+            fileName (string): name of the file to be stored
+        """
         self.__fileName = fileName
     
     def writeText(self,text):
+        """Check if file exists first and creates one if it doesn’t. 
+        Write’s dictionary into the assigned json file.
+
+        Args:
+            text (dictionary): dictiory to be added to dictionary
+        """
         if os.path.isfile(self.__fileName):
             with open(self.__fileName,"r")as f:
                 data = self.readText()
@@ -39,6 +46,11 @@ class FileIO:
             
 
     def readText(self):
+        """Read the json file and return the data in the format of dictionary
+
+        Returns:
+            [dictionary]: returns dictionary values
+        """
         try:
             with open(self.__fileName,"r") as f:
                 data=json.load(f)
@@ -46,14 +58,21 @@ class FileIO:
         except:
             return None
     
-    # Setter functions
-    def setFileName(self, fileName):
-        self.__fileName = fileName
 
     # Getter functions
     def getFileName(self):
+        """Gets the current file name
+
+        Returns:
+            [string]: returns the file name
+        """
         return self.__fileName
     
     def getlength(self):
+        """Gets the length of the dictionary 
+
+        Returns:
+            [int]: length of the dictionary
+        """
         data = self.readText()
         return len(data)
