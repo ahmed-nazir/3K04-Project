@@ -4,7 +4,7 @@ Class used for file I/O
 import json
 import os
 
-class FileIO:              #Class used for storing ,writing and read files.
+class FileIO:              
     # Variable Declaration
     # Constants
     # Private Variables
@@ -21,7 +21,7 @@ class FileIO:              #Class used for storing ,writing and read files.
     def __init__(self, fileName):
         self.__fileName = fileName
     
-    def writeText(self,text):                              #Check if file exists first and create one if not. Write dictionary into the assigned json file.
+    def writeText(self,text):                              
         if os.path.isfile(self.__fileName):
             with open(self.__fileName,"r")as f:
                 data = self.readText()
@@ -38,7 +38,7 @@ class FileIO:              #Class used for storing ,writing and read files.
                 f.write(json.dumps(text))
             
 
-    def readText(self):                                    #Read the json file and return the data in the format of dictionary
+    def readText(self):                                    
         try:
             with open(self.__fileName,"r") as f:
                 data=json.load(f)
@@ -48,9 +48,9 @@ class FileIO:              #Class used for storing ,writing and read files.
     
 
     # Getter functions
-    def getFileName(self):                                #Function getting the file name currently working on
+    def getFileName(self):                                
         return self.__fileName
     
-    def getlength(self):                                  #Function getting the size of the data storing in the file. Used for checking the number of users registered.
+    def getlength(self):                                  
         data = self.readText()
         return len(data)
