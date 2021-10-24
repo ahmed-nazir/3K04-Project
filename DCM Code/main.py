@@ -68,7 +68,7 @@ class LoginWindow(tk.Frame):
         self.__initializeEntryFields()
         self.__initializeButtons()
         # Initialize frame properties
-        self.__paddingFrame = Frame(mainWindow,bg=self.BACKGROUND_COLOR,width=150,height=150)
+        self.__paddingFrame = Frame(mainWindow,bg=self.BACKGROUND_COLOR,width=300,height=150)
         self.__paddingFrame.pack()
 
     
