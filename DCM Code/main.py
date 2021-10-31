@@ -22,9 +22,6 @@ class Run:
         cw.pack()
         cw.mainloop()
 
-
-
-
 class LoginWindow(tk.Frame):
     """ Extends tk.Frame
         The LoginWindow is a subclass of tk.Frame that stores all the components of the login window. 
@@ -236,6 +233,7 @@ class DCMWindow(tk.Frame):
     __comButton= None
     __consoleLog = None
     __buttonSend = None
+    __username = None
     __showState = ["readonly","readonly","readonly","readonly","readonly","readonly","readonly","readonly"]
    
 
@@ -247,6 +245,7 @@ class DCMWindow(tk.Frame):
             username (string): stores the username
         """
         tk.Frame.__init__(self,mainWindow,bg=self.BACKGROUND_COLOR,width=1280,height=600)
+        self.__username=username
         self.__initalizeConstants()
         self.__mainWindow = mainWindow
         self.__mainWindow.focus_set()
@@ -341,7 +340,7 @@ class DCMWindow(tk.Frame):
     def __saveParameters(self):
         """Exports the sent parameters to an external json file
         """
-        alt = FileIO(self.PARAMETERFILE)
+        alt = FileIO(self.__username+self.__currentMode+self.PARAMETERFILE)
         f = alt.readText()
         if not(f):
            alt.writeText("")
@@ -362,6 +361,7 @@ class DCMWindow(tk.Frame):
         """
         self.__modeList.set("VOO")
         self.__hideParameter(["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled"])
+        self.__currentMode="VOO"
         for item in self.__entryArr:
             item.set("")
 
@@ -390,6 +390,7 @@ class DCMWindow(tk.Frame):
             username (string): stores the username
         """
         self.__usernameLabel.config(text="User: " +username)
+        self.__username = username
     
     def __initalizeParameterList(self,higherFrame):
         """ Creates a grid of labels and drop down menus for parameter value inputs
@@ -431,9 +432,6 @@ class DCMWindow(tk.Frame):
         for i in range(36):
             self.ATRREFRAC.append(150 + 10 * i)
             self.VENTREFRAC.append(150 + 10 * i)
-
-
-
 
 
 class ContentWindow(tk.Frame):
@@ -479,7 +477,7 @@ class ContentWindow(tk.Frame):
         """ The method disables the DCM interface and enables the login window screen, along with formatting
         """
         self.__DCM.pack_forget()
-        self.__loginWindow.clearVal()
+        #self.__loginWindow.clearVal()
         self.__loginWindow.setPaddingVisible()
         self.__loginWindow.pack()
 
