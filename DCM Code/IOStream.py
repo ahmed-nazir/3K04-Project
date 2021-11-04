@@ -3,6 +3,7 @@ Class used for file I/O
 """
 import json
 import os
+import serial
 
 class FileIO:
     """Class used for storing, writing, and reading files
@@ -76,3 +77,75 @@ class FileIO:
         """
         data = self.readText()
         return len(data)
+class SerialComm:
+    port = None
+    baudrate = 0
+    bytesize = 0
+    parity = ''
+    stopbits = 0
+    timeout = None
+    xonxoff = 0
+    rtscts = 0
+    """ Object constructor
+    """
+    def __init__(self):
+        self.baudrate=9600
+        self.bytesize = 8
+        self.parity = 'N'
+        self.stopbits = 1
+        self.timeout = None
+        self.xonxoff = 0
+        self.rtscts = 0
+
+
+    """ Set the current port used for Serial Communication
+    """
+    def setPort(self,port):
+        if(port[0:3]=="COM"):
+            self.port=port
+
+
+    """ Returns a list of all available serial ports in use
+    """
+    def getSerialPorts(self):
+        ports = []
+        result = []
+        for i in range(256):
+            ports.append('COM'+str(i))
+        for port in ports:
+            try:
+                s = serial.Serial(port)
+                s.close()
+                result.append(port)
+            except (OSError, serial.SerialException):
+                pass
+        return result
+    """Attempts to write to serial communication ports stored in port
+    """
+    def serialWrite(self,data):
+        ser = serial.Serial(self.port, self.baudrate, self.bytesize, self.parity, self.stopbits, self.timeout,
+                            self.xonxoff, self.rtscts)
+        try:
+            ser.open()
+            if isinstance(data,str):
+                dataList = list(data)
+                for item in dataList:
+                    ser.write(ord(item))
+            elif isinstance(data,int):
+                ser.write(data)
+            ser.close()
+        except Exception:
+            pass
+
+    """Attempts to read from serial communication ports stored in port
+    """
+    def serialRead(self):
+
+        ser = serial.Serial(self.port, self.baudrate,self.bytesize, self.parity, self.stopbits, self.timeout, self.xonxoff,self.rtscts)
+        try:
+            ser.open()
+            val =ser.readline()
+            ser.close()
+            return val
+        except Exception:
+            pass
