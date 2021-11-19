@@ -1,11 +1,14 @@
+import time
 import tkinter as tk
 from tkinter import ttk
 from tkinter import *
 from tkinter import messagebox
+
+import serial
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
 NavigationToolbar2Tk)
-from IOStream import FileIO
+from IOStream import FileIO, SerialComm
 import math
 
 class Run:
@@ -483,4 +486,24 @@ class ContentWindow(tk.Frame):
 
 # Main script
 if __name__ == "__main__":
-    run = Run()
+    #run = Run()
+    sc = SerialComm()
+    print(sc.getSerialPorts())
+    print(serial.STOPBITS_ONE)
+    sc.setPort(sc.getSerialPorts()[0])
+    #sc.serialWrite(b'\x16\x55\x01\x01\x01\xFF\xFF\x10\x10\xFF\x00')
+    sc.serialWrite(b'\x16\x55\x00')
+    print(sc.serialRead())
+    """
+    sc.serialWrite(b'\x16')
+    sc.serialWrite(b'\x22')
+    sc.serialWrite(b'\x01')
+    sc.serialWrite(b'\x01')
+    sc.serialWrite(b'\x01')
+    sc.serialWrite(b'\x00')
+    sc.serialWrite(b'\x00')
+    sc.serialWrite(b'\x00')
+    sc.serialWrite(b'\x01')
+    sc.serialWrite(b'\x05')
+    sc.serialWrite(b'\x00')
+    """
