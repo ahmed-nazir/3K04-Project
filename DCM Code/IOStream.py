@@ -89,11 +89,11 @@ class SerialComm:
     """ Object constructor
     """
     def __init__(self):
-        self.baudrate=9600
+        self.baudrate=115200
         self.bytesize = 8
-        self.parity = 'N'
-        self.stopbits = 1
-        self.timeout = None
+        self.parity = serial.PARITY_ODD
+        self.stopbits = serial.STOPBITS_ONE
+        self.timeout = 1
         self.xonxoff = 0
         self.rtscts = 0
 
@@ -122,16 +122,14 @@ class SerialComm:
         return result
     """Attempts to write to serial communication ports stored in port
     """
-    def serialWrite(self,data):
+
+    def serialWrite(self, data):
         ser = serial.Serial(self.port, self.baudrate, self.bytesize, self.parity, self.stopbits, self.timeout,
                             self.xonxoff, self.rtscts)
         try:
-            ser.open()
-            if isinstance(data,str):
-                dataList = list(data)
-                for item in dataList:
-                    ser.write(ord(item))
-            elif isinstance(data,int):
+            if (type(data) == str):
+                ser.write(data.encode())
+            else:
                 ser.write(data)
             ser.close()
         except Exception:
@@ -140,11 +138,10 @@ class SerialComm:
     """Attempts to read from serial communication ports stored in port
     """
     def serialRead(self):
-
-        ser = serial.Serial(self.port, self.baudrate,self.bytesize, self.parity, self.stopbits, self.timeout, self.xonxoff,self.rtscts)
         try:
-            ser.open()
-            val =ser.readline()
+            ser = serial.Serial(self.port, self.baudrate, self.bytesize, self.parity, self.stopbits, self.timeout,
+                                self.xonxoff, self.rtscts)
+            val = ser.read()
             ser.close()
             return val
         except Exception:
