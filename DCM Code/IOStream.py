@@ -82,8 +82,8 @@ class SerialComm:
     baudrate = 0
     bytesize = 0
     parity = ''
-    stopbits = 0
-    timeout = None
+    stopbits = 1
+    timeout = 1
     xonxoff = 0
     rtscts = 0
     """ Object constructor

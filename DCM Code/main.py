@@ -1,10 +1,7 @@
-import time
 import tkinter as tk
 from tkinter import ttk
 from tkinter import *
 from tkinter import messagebox
-
-import serial
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
 NavigationToolbar2Tk)
@@ -91,7 +88,7 @@ class LoginWindow(tk.Frame):
         """Initializes the buttons to login and register a user
         """
         self.__buttonFrame = Frame(self, bg=self.FOREGROUND_COLOR)
-        self.__loginButton = Button(self.__buttonFrame, text=self.DEFAULT_LOGIN_BUTTON_TEXT, command=self.CheckPass,relief="flat")
+        self.__loginButton = Button(self.__buttonFrame, text=self.DEFAULT_LOGIN_BUTTON_TEXT, command=self.checkPass,relief="flat")
 
         self.__loginButton.grid(row=0, column=0, padx=5, pady=10)
 
@@ -111,7 +108,7 @@ class LoginWindow(tk.Frame):
         # will remove the password screen and add the main program
         # --Note: figure out a way to only remove content pane instead of removing all elements in content pane
     
-    def CheckPass(self):
+    def checkPass(self):
         """Checks whether the credentials the user inputted is correct. Calls the higher frame window’s login function if successful. 
         """
         self.getText()
@@ -205,7 +202,7 @@ class DCMWindow(tk.Frame):
         The DCMWindow is a subclass of tk.Frame that stores all the components of the DCM Window. 
     """
     # Constants
-    PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Ventricular Amplitude","Atrial Pulsewidth","Ventricular Pulsewidth","Atrial Refractory Period","Ventricular Refractory Period"]
+    PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Ventricular Amplitude","Atrial Pulsewidth","Ventricular Pulsewidth","Atrial Refractory Period","Ventricular Refractory Period","","","","","","","",""]
     LRL = [30,35,40,45,50]
     URL = []
     ATRAMP = ["Off"]
@@ -214,13 +211,13 @@ class DCMWindow(tk.Frame):
     VENTWIDTH = [0.05]
     ATRREFRAC = []
     VENTREFRAC = []
-    PROGRAMABLEPARAMETERS = [LRL,URL,ATRAMP,VENTAMP,ATRWIDTH,VENTWIDTH,ATRREFRAC,VENTREFRAC]
+    PROGRAMABLEPARAMETERS = [LRL,URL,ATRAMP,VENTAMP,ATRWIDTH,VENTWIDTH,ATRREFRAC,VENTREFRAC,[],[],[],[],[],[],[],[]]
     PARAMETERFILE = "parameters.json"
-
+    NUMBEROFPARAMETERS = len(PROGRAMABLEPARAMETERS)
     MODELABELS = ["AOO", "VOO", "AAI", "VVI"]
     #The following variable is a placeholder before serial communication is implemented
     BACKGROUND_COLOR = "#FAF9F6"
-    SERIALCOMMODE = ["COM8","COM9"]
+    SERIALCOMMODE = SerialComm().getSerialPorts()
 
     # Private Variables
     __mainWindow = None
@@ -345,17 +342,30 @@ class DCMWindow(tk.Frame):
         """
         alt = FileIO(self.__username+self.__currentMode+self.PARAMETERFILE)
         f = alt.readText()
+        sc = SerialComm()
+        arr = []
         if not(f):
            alt.writeText("")
            f = ""
-        for i in range(8):
+        for i in range(self.NUMBEROFPARAMETERS):
             alt.writeText({self.PARAMLABELS[i]:""})
         alt.writeText({"Mode":self.__currentMode})
-        for i in range(8):
-            print(self.__entryArr[i]["state"])
+        arr.append(self.MODELABELS.index(self.__currentMode).to_bytes(1,"little"))
+        for i in range(self.NUMBEROFPARAMETERS):
+            print(self.__entryArr[i])
+            try:
+                if(float(self.__entryArr[i].get())-int(self.__entryArr[i].get())==0):
+                    arr.append(int(self.__entryArr[i].get()).to_bytes(1,"little"))
+                else:
+                    arr.append(bytearray(struct.pack('f',self.__entryArr[i].get())))
+            except ValueError:
+                arr.append(0x00)
             if (self.__entryArr[i]["state"] == "readonly"):
                 text = {self.PARAMLABELS[i]:self.__entryArr[i].get()}
                 alt.writeText(text)
+        print(b'\x16\x55' + arr)
+        sc.setPort(str(self.__currentPort))
+        sc.serialWrite(b'\x16\x55' + arr)
 
 
 
@@ -372,12 +382,9 @@ class DCMWindow(tk.Frame):
     def checkPort(self):
         """Checks which port is selected
         """
-        if self.__comMode.get() == "COM8":
-            print("COM8 Selected")
+        if SerialComm().setPort(str(self.__comMode.get())):
             self.__comButton.config(bg="#90ee90")
-
-        elif self.__comMode.get() == "COM9":
-            print("COM9 Selected")
+        else:
             self.__comButton.config(bg="red")
 
 
@@ -402,8 +409,8 @@ class DCMWindow(tk.Frame):
             higherFrame (tk.Frame): The higher level frame the components are stored in
         """
         #Initialzing all the parameter boxes
-        for i in range(0,8,2):
-            for j in range(2):
+        for i in range(0,self.NUMBEROFPARAMETERS,4):
+            for j in range(4):
                 label=Label(higherFrame,text=self.PARAMLABELS[i+j],bg=self.BACKGROUND_COLOR)
                 entry = ttk.Combobox(higherFrame,values=self.PROGRAMABLEPARAMETERS[i+j],state="disabled")
                 self.__labelArr.append(label)
@@ -461,7 +468,7 @@ class ContentWindow(tk.Frame):
         tk.Frame.__init__(self,parent)
         self.__parent=parent
         parent.title("DCM")
-        parent.geometry("1000x600")
+        parent.geometry("1200x600")
         parent.resizable(False,False)
         parent.config(bg='#FAF9F6')
         self.__loginWindow = LoginWindow(self)
@@ -486,7 +493,8 @@ class ContentWindow(tk.Frame):
 
 # Main script
 if __name__ == "__main__":
-    #run = Run()
+    run = Run()
+    """
     sc = SerialComm()
     print(sc.getSerialPorts())
     print(serial.STOPBITS_ONE)
@@ -494,7 +502,7 @@ if __name__ == "__main__":
     #sc.serialWrite(b'\x16\x55\x01\x01\x01\xFF\xFF\x10\x10\xFF\x00')
     sc.serialWrite(b'\x16\x55\x00')
     print(sc.serialRead())
-    """
+    
     sc.serialWrite(b'\x16')
     sc.serialWrite(b'\x22')
     sc.serialWrite(b'\x01')
