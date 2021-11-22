@@ -203,7 +203,7 @@ class DCMWindow(tk.Frame):
         The DCMWindow is a subclass of tk.Frame that stores all the components of the DCM Window. 
     """
     # Constants
-    PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Ventricular Amplitude","Atrial Pulsewidth","Ventricular Pulsewidth","Atrial Refractory Period","Ventricular Refractory Period","","","","","","","",""]
+    PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Ventricular Amplitude","Atrial Pulsewidth","Ventricular Pulsewidth","Atrial Refractory Period","Ventricular Refractory Period","Atrium Sense","Ventricle Sense","MSR","Recovery Time","Recation Time","Response Factor","Activity Threshold","AV Delay",""]
     LRL = [30,35,40,45,50]
     URL = []
     ATRAMP = ["Off"]
@@ -212,8 +212,16 @@ class DCMWindow(tk.Frame):
     VENTWIDTH = [0.05]
     ATRREFRAC = []
     VENTREFRAC = []
-    PROGRAMABLEPARAMETERS = [LRL,URL,ATRAMP,VENTAMP,ATRWIDTH,VENTWIDTH,ATRREFRAC,VENTREFRAC,[],[],[],[],[],[],[],[]]
+    ASENSE=[]
+    VSENSE=[]
+    MSR=[]
+    RECOVERYTIME=[]
+    REACTIONTIME=[]
+    RESPONSEFACTOR=[]
+    ACTIVITYTHRESHOLD=[]
+    PROGRAMABLEPARAMETERS = [LRL,URL,ATRAMP,VENTAMP,ATRWIDTH,VENTWIDTH,ATRREFRAC,VENTREFRAC,ASENSE,VSENSE,MSR,RECOVERYTIME,REACTIONTIME,RESPONSEFACTOR,ACTIVITYTHRESHOLD,[]]
     PARAMETERFILE = "parameters.json"
+    TYPELIST = ["8","8","f","f","8","8","16","16","f","f","8","8","8","8","f","16"]
     NUMBEROFPARAMETERS = len(PROGRAMABLEPARAMETERS)
     MODELABELS = ["AOO", "VOO", "AAI", "VVI"]
     #The following variable is a placeholder before serial communication is implemented
@@ -236,7 +244,7 @@ class DCMWindow(tk.Frame):
     __buttonSend = None
     __username = None
     __showState = ["readonly","readonly","readonly","readonly","readonly","readonly","readonly","readonly"]
-   
+
 
     def __init__(self, mainWindow,username):
         """Object Constructor
@@ -354,27 +362,40 @@ class DCMWindow(tk.Frame):
         arr.append(self.MODELABELS.index(self.__currentMode))
         for i in range(self.NUMBEROFPARAMETERS):
             try:
-                    val = int(self.__entryArr[i].get())
-                    arr.append(int(self.__entryArr[i].get()))
+                    if(self.TYPELIST[i]=="8"):
+                        arr.append(int(self.__entryArr[i].get()))
+                    elif(self.TYPELIST[i]=="f"):
+                        if not(float(self.__entryArr[i].get()) ==0):
+                            arr += (list(bytearray(struct.pack('f', float(self.__entryArr[i].get())))))
+                        else:
+                            arr.append(b'\x00\x00\x00\x00')
+                    else:
+                        if not (int(self.__entryArr[i].get()) == 0):
+                            arr +=hex(int(self.__entryArr[i].get()) & 0xffff)
+                        else:
+                            arr.append(b'\x00\x00')
 
             except ValueError:
-
-                try:
-                    val = float(self.__entryArr[i].get())
-                    arr += (list(bytearray(struct.pack('f', float(self.__entryArr[i].get())))))
-                except ValueError:
-                    arr.append(0x00)
+                if (self.TYPELIST[i] == "8"):
+                    arr.append(0)
+                elif (self.TYPELIST[i] == "f"):
+                        arr.append(0)
+                        arr.append(0)
+                        arr.append(0)
+                        arr.append(0)
+                else:
+                        arr.append(0)
+                        arr.append(0)
 
             if (self.__entryArr[i]["state"] == "readonly"):
                 text = {self.PARAMLABELS[i]:self.__entryArr[i].get()}
                 alt.writeText(text)
         print(arr)
+        print(len(arr))
         arr= bytes(arr)
-        print(b'\x16\x55' + arr)
         sc.setPort(str(self.__currentPort))
         sc.serialWrite(b'\x16\x55' + arr)
-
-
+        print(b'\x16\x55' + arr)
 
     def resetMode(self):
         """Reset the bradycardia state back to VOO
@@ -507,7 +528,9 @@ if __name__ == "__main__":
     sc.setPort(sc.getSerialPorts()[0])
     sc.serialWrite(b'\x16\x55\x01\x00\x00\x60\x40\x00\x00\x60\x40\x01\x01\x3C\x78\x40\x01\x40\x01')
     sc.serialWrite(b'\x16\x22\x01\x00\x00\x60\x40\x00\x00\x60\x40\x01\x01\x3C\x78\x40\x01\x40\x01')
-    print(sc.serialRead())
+    print(b'\x16\x55\x01\x00\x00\x60\x40\x00\x00\x60\x40\x01\x01\x3C\x78\x40\x01\x40\x01')
+
+    #print(sc.serialRead())
     """
     sc.serialWrite(b'\x16')
     sc.serialWrite(b'\x22')
