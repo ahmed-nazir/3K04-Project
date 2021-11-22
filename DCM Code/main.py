@@ -7,7 +7,7 @@ from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
 NavigationToolbar2Tk)
 from IOStream import FileIO, SerialComm
 import math
-
+import serial
 class Run:
     """
     The Run class is used to start the program
@@ -494,15 +494,14 @@ class ContentWindow(tk.Frame):
 # Main script
 if __name__ == "__main__":
     run = Run()
-    """
+
     sc = SerialComm()
     print(sc.getSerialPorts())
-    print(serial.STOPBITS_ONE)
     sc.setPort(sc.getSerialPorts()[0])
-    #sc.serialWrite(b'\x16\x55\x01\x01\x01\xFF\xFF\x10\x10\xFF\x00')
-    sc.serialWrite(b'\x16\x55\x00')
+    sc.serialWrite(b'\x16\x55\x01\x00\x00\x60\x40\x00\x00\x60\x40\x01\x01\x3C\x78\x40\x01\x40\x01')
+    sc.serialWrite(b'\x16\x22\x01\x00\x00\x60\x40\x00\x00\x60\x40\x01\x01\x3C\x78\x40\x01\x40\x01')
     print(sc.serialRead())
-    
+    """
     sc.serialWrite(b'\x16')
     sc.serialWrite(b'\x22')
     sc.serialWrite(b'\x01')
