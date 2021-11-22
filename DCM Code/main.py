@@ -1,3 +1,4 @@
+import struct
 import tkinter as tk
 from tkinter import ttk
 from tkinter import *
@@ -350,19 +351,25 @@ class DCMWindow(tk.Frame):
         for i in range(self.NUMBEROFPARAMETERS):
             alt.writeText({self.PARAMLABELS[i]:""})
         alt.writeText({"Mode":self.__currentMode})
-        arr.append(self.MODELABELS.index(self.__currentMode).to_bytes(1,"little"))
+        arr.append(self.MODELABELS.index(self.__currentMode))
         for i in range(self.NUMBEROFPARAMETERS):
-            print(self.__entryArr[i])
             try:
-                if(float(self.__entryArr[i].get())-int(self.__entryArr[i].get())==0):
-                    arr.append(int(self.__entryArr[i].get()).to_bytes(1,"little"))
-                else:
-                    arr.append(bytearray(struct.pack('f',self.__entryArr[i].get())))
+                    val = int(self.__entryArr[i].get())
+                    arr.append(int(self.__entryArr[i].get()))
+
             except ValueError:
-                arr.append(0x00)
+
+                try:
+                    val = float(self.__entryArr[i].get())
+                    arr += (list(bytearray(struct.pack('f', float(self.__entryArr[i].get())))))
+                except ValueError:
+                    arr.append(0x00)
+
             if (self.__entryArr[i]["state"] == "readonly"):
                 text = {self.PARAMLABELS[i]:self.__entryArr[i].get()}
                 alt.writeText(text)
+        print(arr)
+        arr= bytes(arr)
         print(b'\x16\x55' + arr)
         sc.setPort(str(self.__currentPort))
         sc.serialWrite(b'\x16\x55' + arr)
