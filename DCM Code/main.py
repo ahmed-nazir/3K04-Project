@@ -219,7 +219,8 @@ class DCMWindow(tk.Frame):
     REACTIONTIME=[]
     RESPONSEFACTOR=[]
     ACTIVITYTHRESHOLD=[]
-    PROGRAMABLEPARAMETERS = [LRL,URL,ATRAMP,VENTAMP,ATRWIDTH,VENTWIDTH,ATRREFRAC,VENTREFRAC,ASENSE,VSENSE,MSR,RECOVERYTIME,REACTIONTIME,RESPONSEFACTOR,ACTIVITYTHRESHOLD,[]]
+    AVDELAY=[]
+    PROGRAMABLEPARAMETERS = [LRL,URL,ATRAMP,VENTAMP,ATRWIDTH,VENTWIDTH,ATRREFRAC,VENTREFRAC,ASENSE,VSENSE,MSR,RECOVERYTIME,REACTIONTIME,RESPONSEFACTOR,ACTIVITYTHRESHOLD,AVDELAY]
     PARAMETERFILE = "parameters.json"
     TYPELIST = ["8","8","f","f","8","8","16","16","f","f","8","8","8","8","f","16"]
     NUMBEROFPARAMETERS = len(PROGRAMABLEPARAMETERS)
@@ -327,7 +328,7 @@ class DCMWindow(tk.Frame):
         elif self.__modeList.get() == "AAI":
             self.__hideParameter(
                 ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled"])
-            self.__currentMode = "AII"
+            self.__currentMode = "AAI"
         elif self.__modeList.get() == "VOO":
             self.__hideParameter(
                 ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled"])
@@ -359,43 +360,45 @@ class DCMWindow(tk.Frame):
         for i in range(self.NUMBEROFPARAMETERS):
             alt.writeText({self.PARAMLABELS[i]:""})
         alt.writeText({"Mode":self.__currentMode})
-        arr.append(self.MODELABELS.index(self.__currentMode))
+        arr.append((self.MODELABELS.index(self.__currentMode)).to_bytes(1, byteorder='little'))
         for i in range(self.NUMBEROFPARAMETERS):
             try:
                     if(self.TYPELIST[i]=="8"):
-                        arr.append(int(self.__entryArr[i].get()))
+                        arr.append(int(self.__entryArr[i].get()).to_bytes(1, byteorder='little'))
                     elif(self.TYPELIST[i]=="f"):
                         if not(float(self.__entryArr[i].get()) ==0):
-                            arr += (list(bytearray(struct.pack('f', float(self.__entryArr[i].get())))))
-                        else:
-                            arr.append(b'\x00\x00\x00\x00')
+                            temparr=(bytearray(struct.pack('f', float(self.__entryArr[i].get()))))
+                            for item in temparr:
+                                val = int(item)
+                                arr.append(val.to_bytes(1, byteorder='little'))
                     else:
                         if not (int(self.__entryArr[i].get()) == 0):
-                            arr +=hex(int(self.__entryArr[i].get()) & 0xffff)
-                        else:
-                            arr.append(b'\x00\x00')
+                            arr +=int(self.__entryArr[i].get()).to_bytes(2, byteorder='little')
 
             except ValueError:
                 if (self.TYPELIST[i] == "8"):
-                    arr.append(0)
+                    arr.append(b'\x00')
                 elif (self.TYPELIST[i] == "f"):
-                        arr.append(0)
-                        arr.append(0)
-                        arr.append(0)
-                        arr.append(0)
+                        arr.append(b'\x00')
+                        arr.append(b'\x00')
+                        arr.append(b'\x00')
+                        arr.append(b'\x00')
                 else:
-                        arr.append(0)
-                        arr.append(0)
+                    arr.append(b'\x00')
+                    arr.append(b'\x00')
 
             if (self.__entryArr[i]["state"] == "readonly"):
                 text = {self.PARAMLABELS[i]:self.__entryArr[i].get()}
                 alt.writeText(text)
+
+        #arr=[22,85]+arr
         print(arr)
-        print(len(arr))
-        arr= bytes(arr)
+        val=b'\16\x55'
+        for item in arr:
+            val = val+item
+        print(val)
         sc.setPort(str(self.__currentPort))
-        sc.serialWrite(b'\x16\x55' + arr)
-        print(b'\x16\x55' + arr)
+        sc.serialWrite( arr)
 
     def resetMode(self):
         """Reset the bradycardia state back to VOO
