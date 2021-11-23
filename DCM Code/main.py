@@ -373,7 +373,8 @@ class DCMWindow(tk.Frame):
                                 arr.append(val.to_bytes(1, byteorder='little'))
                     else:
                         if not (int(self.__entryArr[i].get()) == 0):
-                            arr +=int(self.__entryArr[i].get()).to_bytes(2, byteorder='little')
+                            val = int(self.__entryArr[i].get()).to_bytes(2, byteorder='little')
+                            arr.append(val)
 
             except ValueError:
                 if (self.TYPELIST[i] == "8"):
