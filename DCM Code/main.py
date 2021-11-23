@@ -390,8 +390,6 @@ class DCMWindow(tk.Frame):
             if (self.__entryArr[i]["state"] == "readonly"):
                 text = {self.PARAMLABELS[i]:self.__entryArr[i].get()}
                 alt.writeText(text)
-
-        #arr=[22,85]+arr
         print(arr)
         val=b'\x16\x55'
         for item in arr:
@@ -414,10 +412,7 @@ class DCMWindow(tk.Frame):
     def checkPort(self):
         """Checks which port is selected
         """
-        if SerialComm().setPort(str(self.__comMode.get())):
-            self.__comButton.config(bg="#90ee90")
-        else:
-            self.__comButton.config(bg="red")
+        self.__currentPort=self.__comMode.get()
 
 
     def logout(self):
