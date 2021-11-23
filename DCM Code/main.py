@@ -208,8 +208,8 @@ class DCMWindow(tk.Frame):
     URL = []
     ATRAMP = ["Off"]
     VENTAMP = ["Off"]
-    ATRWIDTH = [0.05]
-    VENTWIDTH = [0.05]
+    ATRWIDTH = []
+    VENTWIDTH = []
     ATRREFRAC = []
     VENTREFRAC = []
     ASENSE=[]
@@ -379,7 +379,7 @@ class DCMWindow(tk.Frame):
                 if (self.TYPELIST[i] == "8"):
                     arr.append(b'\x00')
                 elif (self.TYPELIST[i] == "f"):
-                        arr.append(b'\x00')
+                        arr.append(b'\x00')  
                         arr.append(b'\x00')
                         arr.append(b'\x00')
                         arr.append(b'\x00')
@@ -393,12 +393,13 @@ class DCMWindow(tk.Frame):
 
         #arr=[22,85]+arr
         print(arr)
-        val=b'\16\x55'
+        val=b'\x16\x55'
         for item in arr:
             val = val+item
-        print(val)
+        print(type(val))
         sc.setPort(str(self.__currentPort))
-        sc.serialWrite( arr)
+        sc.serialWrite(val)
+        print(val)
 
     def resetMode(self):
         """Reset the bradycardia state back to VOO
@@ -459,16 +460,14 @@ class DCMWindow(tk.Frame):
         for i in range(26):
             self.URL.append(50 + i * 5)
 
-        for i in range(28):
-            self.ATRAMP.append(round(0.5 + 0.1 * i, 1))
-            self.VENTAMP.append(round(0.5 + 0.1 * i, 1))
-        for i in range(8):
-            self.ATRAMP.append(round(3.5 + 0.5 * i, 1))
-            self.VENTAMP.append(round(3.5 + 0.5 * i, 1))
+        for i in range(50):
+            self.ATRAMP.append(round(0.1 + 0.1 * i, 1))
+            self.VENTAMP.append(round(0.1 + 0.1 * i, 1))
+    
 
-        for i in range(19):
-            self.ATRWIDTH.append(round(0.1 + i * 0.1, 1))
-            self.VENTWIDTH.append(round(0.1 + i * 0.1, 1))
+        for i in range(30):
+            self.ATRWIDTH.append(1 + i)
+            self.VENTWIDTH.append(1 + i)
 
         for i in range(36):
             self.ATRREFRAC.append(150 + 10 * i)
@@ -529,21 +528,11 @@ if __name__ == "__main__":
     sc = SerialComm()
     print(sc.getSerialPorts())
     sc.setPort(sc.getSerialPorts()[0])
-    sc.serialWrite(b'\x16\x55\x01\x00\x00\x60\x40\x00\x00\x60\x40\x01\x01\x3C\x78\x40\x01\x40\x01')
-    sc.serialWrite(b'\x16\x22\x01\x00\x00\x60\x40\x00\x00\x60\x40\x01\x01\x3C\x78\x40\x01\x40\x01')
-    print(b'\x16\x55\x01\x00\x00\x60\x40\x00\x00\x60\x40\x01\x01\x3C\x78\x40\x01\x40\x01')
-
+    #sc.serialWrite(b'\x16\x55\x01\x00\x00\x60\x40\x00\x00\x60\x40\x01\x01\x3C\x78\x40\x01\x40\x01')
+    #sc.serialWrite(b'\x16\x22\x01\x00\x00\x60\x40\x00\x00\x60\x40\x01\x01\x3C\x78\x40\x01\x40\x01')
+    #print(b'\x16\x55\x01\x00\x00\x60\x40\x00\x00\x60\x40\x01\x01\x3C\x78\x40\x01\x40\x01')
+    #sc.serialWrite(b'\x16\x55\x01\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x01\x01\x00\xFA\x01\x40\x00\x00\x80\x40\x00\x00\x80\x40\x78\x05\x1E\x08\x00\x00\x00\x00\x00\x96')
+    sc.serialWrite(b'\x16\x22\x01\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x01\x01\x00\xFA\x01\x40\x00\x00\x80\x40\x00\x00\x80\x40\x78\x05\x1E\x08\x00\x00\x00\x00\x00\x96')
+    #sc.serialWrite(b'\x16\x22\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
     #print(sc.serialRead())
-    """
-    sc.serialWrite(b'\x16')
-    sc.serialWrite(b'\x22')
-    sc.serialWrite(b'\x01')
-    sc.serialWrite(b'\x01')
-    sc.serialWrite(b'\x01')
-    sc.serialWrite(b'\x00')
-    sc.serialWrite(b'\x00')
-    sc.serialWrite(b'\x00')
-    sc.serialWrite(b'\x01')
-    sc.serialWrite(b'\x05')
-    sc.serialWrite(b'\x00')
-    """
+    #print(b'\x16\x22\x01\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x01\x01\x00\xFA\x01\x40\x00\x00\x80\x40\x00\x00\x80\x40\x78\x05\x1E\x08\x00\x00\x00\x00\x00\x96')

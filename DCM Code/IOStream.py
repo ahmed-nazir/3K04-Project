@@ -141,7 +141,7 @@ class SerialComm:
         try:
             ser = serial.Serial(self.port, self.baudrate, self.bytesize, self.parity, self.stopbits, self.timeout,
                                 self.xonxoff, self.rtscts)
-            val = ser.read(100)
+            val = ser.read(1000)
             ser.close()
             return val
         except Exception:
