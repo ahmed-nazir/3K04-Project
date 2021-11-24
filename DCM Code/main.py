@@ -323,19 +323,19 @@ class DCMWindow(tk.Frame):
 
         if self.__modeList.get() == "AOO":
             self.__hideParameter(
-                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "disabled", "disabled"])
+                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "disabled", "disabled","disabled","disabled"])
             self.__currentMode = "AOO"
         elif self.__modeList.get() == "AAI":
             self.__hideParameter(
-                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled","readonly"])
+                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled","readonly","disabled"])
             self.__currentMode = "AAI"
         elif self.__modeList.get() == "VOO":
             self.__hideParameter(
-                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled"])
+                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled","disabled","disabled"])
             self.__currentMode = "VOO"
         elif self.__modeList.get() == "VVI":
             self.__hideParameter(
-                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "readonly"])
+                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "readonly","disabled","readonly"])
             self.__currentMode = "VVI"
 
     def __hideParameter(self,showState):
