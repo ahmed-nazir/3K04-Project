@@ -9,6 +9,10 @@ NavigationToolbar2Tk)
 from IOStream import FileIO, SerialComm
 import math
 import serial
+
+from time import sleep
+import time
+import threading 
 class Run:
     """
     The Run class is used to start the program
@@ -352,7 +356,7 @@ class DCMWindow(tk.Frame):
         """
         alt = FileIO(self.__username+self.__currentMode+self.PARAMETERFILE)
         f = alt.readText()
-        sc = SerialComm()
+        
         arr = []
         if not(f):
            alt.writeText("")
@@ -395,6 +399,19 @@ class DCMWindow(tk.Frame):
         val=b'\x16\x55'
         for item in arr:
             val = val+item
+        print(type(val))
+        sc.setPort(str(self.__currentPort))
+        sc.serialWrite(val)
+        """print(type(val))
+        sc.setPort(str(self.__currentPort))
+        sc.serialWrite(val)
+        print(val)"""
+
+        t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,))
+        t1_sc.start()
+
+    def serialCommWrite(self, val):
+        sc = SerialComm()
         print(type(val))
         sc.setPort(str(self.__currentPort))
         sc.serialWrite(val)
@@ -461,7 +478,6 @@ class DCMWindow(tk.Frame):
             self.VENTAMP.append(round(0.1 + 0.1 * i, 1))
             self.ASENSE.append(round(0.1 + 0.1 * i, 1))
             self.VSENSE.append(round(0.1 + 0.1 * i, 1))
-
         for i in range(30):
             self.ATRWIDTH.append(1 + i)
             self.VENTWIDTH.append(1 + i)
