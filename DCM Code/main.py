@@ -203,7 +203,7 @@ class DCMWindow(tk.Frame):
         The DCMWindow is a subclass of tk.Frame that stores all the components of the DCM Window. 
     """
     # Constants
-    PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Ventricular Amplitude","Atrial Pulsewidth","Ventricular Pulsewidth","Atrial Refractory Period","Ventricular Refractory Period","Atrium Sense","Ventricle Sense","MSR","Recovery Time","Recation Time","Response Factor","Activity Threshold","AV Delay",""]
+    PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Ventricular Amplitude","Atrial Pulsewidth","Ventricular Pulsewidth","Atrial Refractory Period","Ventricular Refractory Period","Atrium Sense","Ventricle Sense","MSR","Recovery Time","Reaction Time","Response Factor","Activity Threshold","AV Delay",""]
     LRL = [30,35,40,45,50]
     URL = []
     ATRAMP = ["Off"]
@@ -212,8 +212,8 @@ class DCMWindow(tk.Frame):
     VENTWIDTH = []
     ATRREFRAC = []
     VENTREFRAC = []
-    ASENSE=[]
-    VSENSE=[]
+    ASENSE=[0]
+    VSENSE=[0]
     MSR=[]
     RECOVERYTIME=[]
     REACTIONTIME=[]
@@ -224,7 +224,7 @@ class DCMWindow(tk.Frame):
     PARAMETERFILE = "parameters.json"
     TYPELIST = ["8","8","f","f","8","8","16","16","f","f","8","8","8","8","f","16"]
     NUMBEROFPARAMETERS = len(PROGRAMABLEPARAMETERS)
-    MODELABELS = ["AOO", "VOO", "AAI", "VVI"]
+    MODELABELS = ["AOO", "VOO", "AAI", "VVI","AOOR","VOOR","AAIR","VVIR","DOO","DOOR"]
     #The following variable is a placeholder before serial communication is implemented
     BACKGROUND_COLOR = "#FAF9F6"
     SERIALCOMMODE = SerialComm().getSerialPorts()
@@ -327,7 +327,7 @@ class DCMWindow(tk.Frame):
             self.__currentMode = "AOO"
         elif self.__modeList.get() == "AAI":
             self.__hideParameter(
-                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled"])
+                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled","readonly"])
             self.__currentMode = "AAI"
         elif self.__modeList.get() == "VOO":
             self.__hideParameter(
@@ -459,7 +459,8 @@ class DCMWindow(tk.Frame):
         for i in range(50):
             self.ATRAMP.append(round(0.1 + 0.1 * i, 1))
             self.VENTAMP.append(round(0.1 + 0.1 * i, 1))
-    
+            self.ASENSE.append(round(0.1 + 0.1 * i, 1))
+            self.VSENSE.append(round(0.1 + 0.1 * i, 1))
 
         for i in range(30):
             self.ATRWIDTH.append(1 + i)
