@@ -12,7 +12,7 @@ import serial
 
 from time import sleep
 import time
-import threading 
+#import threading
 class Run:
     """
     The Run class is used to start the program
@@ -403,6 +403,7 @@ class DCMWindow(tk.Frame):
             val = val+item
         sc.setPort(str(self.__currentPort))
         sc.serialWrite(val)
+        print(self.__currentPort)
         print(val)
         # t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,    ))
            # t1_sc.start()
@@ -428,8 +429,10 @@ class DCMWindow(tk.Frame):
         """Checks which port is selected
         """
         self.__currentPort=self.__comMode.get()
-        t2_sc = threading.Thread(target=self.runPort)
-        t2_sc.start()
+        self.runPort()
+        #t2_sc = threading.Thread(target=self.runPort)
+        #t2_sc.start()
+        #t2_sc.join(1)
     def runPort(self):
         self.__comMode["values"] = SerialComm().getSerialPorts()
 
