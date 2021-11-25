@@ -283,7 +283,7 @@ class DCMWindow(tk.Frame):
         self.__usernameLabel.grid(row=0,column=0,padx=110)
         self.__comMode = ttk.Combobox(self.__topFrame, values= self.SERIALCOMMODE,state = "readonly")
         self.__comMode.grid(row=0,column=1,padx=5)
-        self.__comButton = Button(self.__topFrame, text="Connect",bg="red", command=self.checkPort(), relief="flat", padx=20)
+        self.__comButton = Button(self.__topFrame, text="Connect",bg="red", command=self.checkPort, relief="flat", padx=20)
         self.__comButton.grid(row=0,column=2,padx=5)
         self.__logoutButton = Button(self.__topFrame, text="Logout", command=self.logout, relief="flat", padx=20)
         self.__logoutButton.grid(row=0, column=3,padx=230)
@@ -428,6 +428,9 @@ class DCMWindow(tk.Frame):
         """Checks which port is selected
         """
         self.__currentPort=self.__comMode.get()
+        t2_sc = threading.Thread(target=self.runPort)
+        t2_sc.start()
+    def runPort(self):
         self.__comMode["values"] = SerialComm().getSerialPorts()
 
     def logout(self):
