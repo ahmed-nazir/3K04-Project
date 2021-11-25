@@ -397,19 +397,15 @@ class DCMWindow(tk.Frame):
                 text = {self.PARAMLABELS[i]:self.__entryArr[i].get()}
                 alt.writeText(text)
         print(arr)
+        sc = SerialComm()
         val=b'\x16\x55'
         for item in arr:
             val = val+item
-        print(type(val))
-        #sc.setPort(str(self.__currentPort))
-        #sc.serialWrite(val)
-        """print(type(val))
         sc.setPort(str(self.__currentPort))
         sc.serialWrite(val)
-        print(val)"""
-
-        t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,    ))
-        t1_sc.start()
+        print(val)
+        # t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,    ))
+           # t1_sc.start()
 
     def serialCommWrite(self, val):
         sc = SerialComm()
