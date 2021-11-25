@@ -283,7 +283,7 @@ class DCMWindow(tk.Frame):
         self.__usernameLabel.grid(row=0,column=0,padx=110)
         self.__comMode = ttk.Combobox(self.__topFrame, values= self.SERIALCOMMODE,state = "readonly")
         self.__comMode.grid(row=0,column=1,padx=5)
-        self.__comButton = Button(self.__topFrame, text="Connect",bg="red", command=self.checkPort, relief="flat", padx=20)
+        self.__comButton = Button(self.__topFrame, text="Connect",bg="red", command=self.checkPort(), relief="flat", padx=20)
         self.__comButton.grid(row=0,column=2,padx=5)
         self.__logoutButton = Button(self.__topFrame, text="Logout", command=self.logout, relief="flat", padx=20)
         self.__logoutButton.grid(row=0, column=3,padx=230)
@@ -354,9 +354,9 @@ class DCMWindow(tk.Frame):
     def __saveParameters(self):
         """Exports the sent parameters to an external json file
         """
+
         alt = FileIO(self.__username+self.__currentMode+self.PARAMETERFILE)
         f = alt.readText()
-        
         arr = []
         if not(f):
            alt.writeText("")
@@ -367,16 +367,17 @@ class DCMWindow(tk.Frame):
         arr.append((self.MODELABELS.index(self.__currentMode)).to_bytes(1, byteorder='little'))
         for i in range(self.NUMBEROFPARAMETERS):
             try:
+                    print(self.__entryArr[i]["state"])
+                    if (self.__entryArr[i]["state"] == "disabled"):
+                        raise ValueError()
                     if(self.TYPELIST[i]=="8"):
                         arr.append(int(self.__entryArr[i].get()).to_bytes(1, byteorder='little'))
                     elif(self.TYPELIST[i]=="f"):
-                        if not(float(self.__entryArr[i].get()) ==0):
                             temparr=(bytearray(struct.pack('f', float(self.__entryArr[i].get()))))
                             for item in temparr:
                                 val = int(item)
                                 arr.append(val.to_bytes(1, byteorder='little'))
                     else:
-                        if not (int(self.__entryArr[i].get()) == 0):
                             val = int(self.__entryArr[i].get()).to_bytes(2, byteorder='little')
                             arr.append(val)
 
@@ -400,14 +401,14 @@ class DCMWindow(tk.Frame):
         for item in arr:
             val = val+item
         print(type(val))
-        sc.setPort(str(self.__currentPort))
-        sc.serialWrite(val)
+        #sc.setPort(str(self.__currentPort))
+        #sc.serialWrite(val)
         """print(type(val))
         sc.setPort(str(self.__currentPort))
         sc.serialWrite(val)
         print(val)"""
 
-        t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,))
+        t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,    ))
         t1_sc.start()
 
     def serialCommWrite(self, val):
@@ -431,12 +432,13 @@ class DCMWindow(tk.Frame):
         """Checks which port is selected
         """
         self.__currentPort=self.__comMode.get()
-
+        self.__comMode["values"] = SerialComm().getSerialPorts()
 
     def logout(self):
         """Logs out of the main interface
         """
         self.__mainWindow.logout()
+
 
     def setUsername(self,username):
         """Shows the username of the current user on the top left of the DCM window

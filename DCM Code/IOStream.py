@@ -4,6 +4,7 @@ Class used for file I/O
 import json
 import os
 import serial
+import threading
 
 class FileIO:
     """Class used for storing, writing, and reading files
@@ -110,7 +111,7 @@ class SerialComm:
     def getSerialPorts(self):
         ports = []
         result = []
-        for i in range(256):
+        for i in range(16):
             ports.append('COM'+str(i))
         for port in ports:
             try:
@@ -124,14 +125,17 @@ class SerialComm:
     """
 
     def serialWrite(self, data):
-        ser = serial.Serial(self.port, self.baudrate, self.bytesize, self.parity, self.stopbits, self.timeout,
-                            self.xonxoff, self.rtscts)
         try:
-            if (type(data) == str):
-                ser.write(data.encode())
-            else:
-                ser.write(data)
-            ser.close()
+            ser = serial.Serial(self.port, self.baudrate, self.bytesize, self.parity, self.stopbits, self.timeout,
+                                self.xonxoff, self.rtscts)
+            try:
+                if (type(data) == str):
+                    ser.write(data.encode())
+                else:
+                    ser.write(data)
+                ser.close()
+            except Exception:
+                ser.close()
         except Exception:
             pass
 
