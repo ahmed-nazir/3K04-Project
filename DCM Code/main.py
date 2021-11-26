@@ -12,7 +12,7 @@ import serial
 
 from time import sleep
 import time
-#import threading
+import threading
 class Run:
     """
     The Run class is used to start the program
@@ -222,7 +222,7 @@ class DCMWindow(tk.Frame):
     RECOVERYTIME=[]
     REACTIONTIME=[]
     RESPONSEFACTOR=[]
-    ACTIVITYTHRESHOLD=[]
+    ACTIVITYTHRESHOLD=["V-Low","Low","Med-Low","Med","Med-High","High","V-High"]
     AVDELAY=[]
     PROGRAMABLEPARAMETERS = [LRL,URL,ATRAMP,VENTAMP,ATRWIDTH,VENTWIDTH,ATRREFRAC,VENTREFRAC,ASENSE,VSENSE,MSR,RECOVERYTIME,REACTIONTIME,RESPONSEFACTOR,ACTIVITYTHRESHOLD,AVDELAY]
     PARAMETERFILE = "parameters.json"
@@ -232,6 +232,7 @@ class DCMWindow(tk.Frame):
     #The following variable is a placeholder before serial communication is implemented
     BACKGROUND_COLOR = "#FAF9F6"
     SERIALCOMMODE = SerialComm().getSerialPorts()
+    ACTIVITYTHRESHOLDDICT = {"V-Low":1.1,"Low":1.3,"Med-Low":1.5,"Med":1.7,"Med-High":1.9,"High":2.1,"V-High":2.3}
 
     # Private Variables
     __mainWindow = None
@@ -327,21 +328,45 @@ class DCMWindow(tk.Frame):
 
         if self.__modeList.get() == "AOO":
             self.__hideParameter(
-                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "disabled", "disabled","disabled","disabled"])
+                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "disabled", "disabled","disabled","disabled", "disabled", "disabled","disabled", "disabled", "disabled", "disabled"])
             self.__currentMode = "AOO"
         elif self.__modeList.get() == "AAI":
             self.__hideParameter(
-                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled","readonly","disabled"])
+                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled","readonly","disabled", "disabled", "disabled","disabled", "disabled", "disabled", "disabled"])
             self.__currentMode = "AAI"
         elif self.__modeList.get() == "VOO":
             self.__hideParameter(
-                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled","disabled","disabled"])
+                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled","disabled","disabled", "disabled", "disabled","disabled", "disabled", "disabled", "disabled"])
             self.__currentMode = "VOO"
         elif self.__modeList.get() == "VVI":
             self.__hideParameter(
-                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "readonly","disabled","readonly"])
+                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "readonly","disabled","readonly", "disabled", "disabled","disabled", "disabled", "disabled", "disabled"])
             self.__currentMode = "VVI"
-
+        elif self.__modeList.get() == "AOOR":
+            self.__hideParameter(
+                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "disabled", "disabled",
+                 "disabled", "disabled", "readonly", "readonly", "readonly", "readonly", "readonly", "disabled"])
+            self.__currentMode = "AOOR"
+        elif self.__modeList.get() == "AAIR":
+            self.__hideParameter(
+                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled",
+                 "readonly", "disabled",  "readonly", "readonly", "readonly", "readonly", "readonly", "disabled"])
+            self.__currentMode = "AAIR"
+        elif self.__modeList.get() == "VOOR":
+            self.__hideParameter(
+                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled",
+                 "disabled", "disabled",  "readonly", "readonly", "readonly", "readonly", "readonly", "disabled"])
+            self.__currentMode = "VOOR"
+        elif self.__modeList.get() == "DOO":
+            self.__hideParameter(
+                ["readonly", "readonly", "readonly", "readonly", "readonly", "readonly", "disabled", "disabled",
+                 "disabled", "disabled", "disabled", "disabled", "disabled", "disabled", "disabled", "readonly"])
+            self.__currentMode = "DOO"
+        elif self.__modeList.get() == "DOOR":
+            self.__hideParameter(
+                ["readonly", "readonly", "readonly", "readonly", "readonly", "readonly", "disabled", "disabled",
+                 "disabled", "disabled", "readonly", "readonly", "readonly", "readonly", "readonly", "readonly"])
+            self.__currentMode = "DOOR"
     def __hideParameter(self,showState):
         """Changes that status of the drop-down selector for each parameter
 
@@ -382,36 +407,45 @@ class DCMWindow(tk.Frame):
                             arr.append(val)
 
             except ValueError:
-                if (self.TYPELIST[i] == "8"):
-                    arr.append(b'\x00')
-                elif (self.TYPELIST[i] == "f"):
-                        arr.append(b'\x00')  
-                        arr.append(b'\x00')
-                        arr.append(b'\x00')
-                        arr.append(b'\x00')
+                if(str(self.__entryArr[i].get()) in self.ACTIVITYTHRESHOLD ):
+                    val = self.ACTIVITYTHRESHOLDDICT[str(self.__entryArr[i].get())]
+                    temparr = bytearray(struct.pack('f', val))
+                    for item in temparr:
+                        val = int(item)
+                        arr.append(val.to_bytes(1, byteorder='little'))
                 else:
-                    arr.append(b'\x00')
-                    arr.append(b'\x00')
+                    if (self.TYPELIST[i] == "8"):
+                        arr.append(b'\x00')
+                    elif (self.TYPELIST[i] == "f"):
+                            arr.append(b'\x00')
+                            arr.append(b'\x00')
+                            arr.append(b'\x00')
+                            arr.append(b'\x00')
+                    else:
+                        arr.append(b'\x00')
+                        arr.append(b'\x00')
 
-            if (self.__entryArr[i]["state"] == "readonly"):
-                text = {self.PARAMLABELS[i]:self.__entryArr[i].get()}
-                alt.writeText(text)
+                if (self.__entryArr[i]["state"] == "readonly"):
+                    text = {self.PARAMLABELS[i]:self.__entryArr[i].get()}
+                    alt.writeText(text)
+
         print(arr)
-        sc = SerialComm()
+        #sc = SerialComm()
         val=b'\x16\x55'
         for item in arr:
             val = val+item
-        sc.setPort(str(self.__currentPort))
-        sc.serialWrite(val)
+        #sc.setPort(str(self.__currentPort))
+        #sc.serialWrite(val)
         print(self.__currentPort)
         print(val)
-        # t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,    ))
-           # t1_sc.start()
+        t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,    ))
+        t1_sc.start()
 
     def serialCommWrite(self, val):
         sc = SerialComm()
         print(type(val))
         sc.setPort(str(self.__currentPort))
+        print(sc.port)
         sc.serialWrite(val)
         print(val)
 
@@ -429,9 +463,9 @@ class DCMWindow(tk.Frame):
         """Checks which port is selected
         """
         self.__currentPort=self.__comMode.get()
-        self.runPort()
-        #t2_sc = threading.Thread(target=self.runPort)
-        #t2_sc.start()
+        t2_sc = threading.Thread(target=self.runPort)
+        t2_sc.daemon=True
+        t2_sc.start()
         #t2_sc.join(1)
     def runPort(self):
         self.__comMode["values"] = SerialComm().getSerialPorts()
@@ -476,6 +510,7 @@ class DCMWindow(tk.Frame):
 
         for i in range(26):
             self.URL.append(50 + i * 5)
+            self.MSR.append(50 + i*5)
 
         for i in range(50):
             self.ATRAMP.append(round(0.1 + 0.1 * i, 1))
@@ -485,11 +520,17 @@ class DCMWindow(tk.Frame):
         for i in range(30):
             self.ATRWIDTH.append(1 + i)
             self.VENTWIDTH.append(1 + i)
-
         for i in range(36):
             self.ATRREFRAC.append(150 + 10 * i)
             self.VENTREFRAC.append(150 + 10 * i)
-
+        for i in range(2,17,1):
+            self.RECOVERYTIME.append(i)
+        for i in range(10,51,10):
+            self.REACTIONTIME.append(i)
+        for i in range(1,17):
+            self.RESPONSEFACTOR.append(i)
+        for i in range(70,301,10):
+            self.AVDELAY.append(i)
 
 class ContentWindow(tk.Frame):
     """ Extends tk.Frame
