@@ -9,10 +9,10 @@ NavigationToolbar2Tk)
 from IOStream import FileIO, SerialComm
 import math
 import serial
+
 from time import sleep
 import time
-import threading 
-
+import threading
 class Run:
     """
     The Run class is used to start the program
@@ -207,7 +207,7 @@ class DCMWindow(tk.Frame):
         The DCMWindow is a subclass of tk.Frame that stores all the components of the DCM Window. 
     """
     # Constants
-    PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Ventricular Amplitude","Atrial Pulsewidth","Ventricular Pulsewidth","Atrial Refractory Period","Ventricular Refractory Period","Atrium Sense","Ventricle Sense","MSR","Recovery Time","Recation Time","Response Factor","Activity Threshold","AV Delay",""]
+    PARAMLABELS = ["Lower Rate Limit","Upper Rate Limit","Atrial Amplitude","Ventricular Amplitude","Atrial Pulsewidth","Ventricular Pulsewidth","Atrial Refractory Period","Ventricular Refractory Period","Atrium Sense","Ventricle Sense","MSR","Recovery Time","Reaction Time","Response Factor","Activity Threshold","AV Delay",""]
     LRL = [30,35,40,45,50]
     URL = []
     ATRAMP = ["Off"]
@@ -216,8 +216,8 @@ class DCMWindow(tk.Frame):
     VENTWIDTH = []
     ATRREFRAC = []
     VENTREFRAC = []
-    ASENSE=[]
-    VSENSE=[]
+    ASENSE=[0]
+    VSENSE=[0]
     MSR=[]
     RECOVERYTIME=[]
     REACTIONTIME=[]
@@ -228,7 +228,7 @@ class DCMWindow(tk.Frame):
     PARAMETERFILE = "parameters.json"
     TYPELIST = ["8","8","f","f","8","8","16","16","f","f","8","8","8","8","f","16"]
     NUMBEROFPARAMETERS = len(PROGRAMABLEPARAMETERS)
-    MODELABELS = ["AOO", "VOO", "AAI", "VVI"]
+    MODELABELS = ["AOO", "VOO", "AAI", "VVI","AOOR","VOOR","AAIR","VVIR","DOO","DOOR"]
     #The following variable is a placeholder before serial communication is implemented
     BACKGROUND_COLOR = "#FAF9F6"
     SERIALCOMMODE = SerialComm().getSerialPorts()
@@ -294,8 +294,15 @@ class DCMWindow(tk.Frame):
         """
         self.__leftFrame = Frame(self.__centerFrame, bg=self.BACKGROUND_COLOR, width=640, height=550)
         self.__leftFrame.grid(row=0,column=0)
+       # self.__graphWindow = GraphWindow(self.__leftFrame)
+       # self.__graphWindow.pack()
+        t1_gw = threading.Thread(target=self.startGraphWindow) 
+        t1_gw.start()
+
+    def startGraphWindow(self):
         self.__graphWindow = GraphWindow(self.__leftFrame)
         self.__graphWindow.pack()
+
     def __initalizeRightFrame(self):
         """Initializes right frame of the DCM Window
         """
@@ -327,19 +334,19 @@ class DCMWindow(tk.Frame):
 
         if self.__modeList.get() == "AOO":
             self.__hideParameter(
-                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "disabled", "disabled"])
+                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "disabled", "disabled","disabled","disabled"])
             self.__currentMode = "AOO"
         elif self.__modeList.get() == "AAI":
             self.__hideParameter(
-                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled"])
+                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled","readonly","disabled"])
             self.__currentMode = "AAI"
         elif self.__modeList.get() == "VOO":
             self.__hideParameter(
-                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled"])
+                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled","disabled","disabled"])
             self.__currentMode = "VOO"
         elif self.__modeList.get() == "VVI":
             self.__hideParameter(
-                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "readonly"])
+                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "readonly","disabled","readonly"])
             self.__currentMode = "VVI"
 
     def __hideParameter(self,showState):
@@ -354,9 +361,9 @@ class DCMWindow(tk.Frame):
     def __saveParameters(self):
         """Exports the sent parameters to an external json file
         """
+
         alt = FileIO(self.__username+self.__currentMode+self.PARAMETERFILE)
         f = alt.readText()
-        
         arr = []
         if not(f):
            alt.writeText("")
@@ -367,17 +374,19 @@ class DCMWindow(tk.Frame):
         arr.append((self.MODELABELS.index(self.__currentMode)).to_bytes(1, byteorder='little'))
         for i in range(self.NUMBEROFPARAMETERS):
             try:
+                    print(self.__entryArr[i]["state"])
+                    if (self.__entryArr[i]["state"] == "disabled"):
+                        raise ValueError()
                     if(self.TYPELIST[i]=="8"):
                         arr.append(int(self.__entryArr[i].get()).to_bytes(1, byteorder='little'))
                     elif(self.TYPELIST[i]=="f"):
-                        if not(float(self.__entryArr[i].get()) ==0):
                             temparr=(bytearray(struct.pack('f', float(self.__entryArr[i].get()))))
                             for item in temparr:
                                 val = int(item)
                                 arr.append(val.to_bytes(1, byteorder='little'))
                     else:
-                        if not (int(self.__entryArr[i].get()) == 0):
-                            arr +=int(self.__entryArr[i].get()).to_bytes(2, byteorder='little')
+                            val = int(self.__entryArr[i].get()).to_bytes(2, byteorder='little')
+                            arr.append(val)
 
             except ValueError:
                 if (self.TYPELIST[i] == "8"):
@@ -395,20 +404,21 @@ class DCMWindow(tk.Frame):
                 text = {self.PARAMLABELS[i]:self.__entryArr[i].get()}
                 alt.writeText(text)
         print(arr)
+        #sc = SerialComm()
         val=b'\x16\x55'
         for item in arr:
             val = val+item
-        """print(type(val))
-        sc.setPort(str(self.__currentPort))
-        sc.serialWrite(val)
-        print(val)"""
-
-        t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,))
+        #sc.setPort(str(self.__currentPort))
+        #sc.serialWrite(val)
+        #print(self.__currentPort)
+        #print(val)
+        t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,    ))
         t1_sc.start()
 
     def serialCommWrite(self, val):
         sc = SerialComm()
         print(type(val))
+        print(self.__currentPort)
         sc.setPort(str(self.__currentPort))
         sc.serialWrite(val)
         print(val)
@@ -427,12 +437,19 @@ class DCMWindow(tk.Frame):
         """Checks which port is selected
         """
         self.__currentPort=self.__comMode.get()
+        self.runPort()
+        #t2_sc = threading.Thread(target=self.runPort)
+        #t2_sc.start()
+        #t2_sc.join(1)
 
+    def runPort(self):
+        self.__comMode["values"] = SerialComm().getSerialPorts()
 
     def logout(self):
         """Logs out of the main interface
         """
         self.__mainWindow.logout()
+
 
     def setUsername(self,username):
         """Shows the username of the current user on the top left of the DCM window
@@ -472,8 +489,8 @@ class DCMWindow(tk.Frame):
         for i in range(50):
             self.ATRAMP.append(round(0.1 + 0.1 * i, 1))
             self.VENTAMP.append(round(0.1 + 0.1 * i, 1))
-    
-
+            self.ASENSE.append(round(0.1 + 0.1 * i, 1))
+            self.VSENSE.append(round(0.1 + 0.1 * i, 1))
         for i in range(30):
             self.ATRWIDTH.append(1 + i)
             self.VENTWIDTH.append(1 + i)
