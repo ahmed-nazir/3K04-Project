@@ -293,6 +293,9 @@ class DCMWindow(tk.Frame):
         self.__centerFrame = Frame(self,bg=self.BACKGROUND_COLOR,width=1280,height=550)
         self.__centerFrame.pack()
         #self.__initalizeLeftFrame()
+
+        t1_gw = threading.Thread(target=self.__displayGraph)
+        t1_gw.start()
         self.__initalizeRightFrame()
         self.__initalizeBottomFrame()
 
@@ -356,37 +359,38 @@ class DCMWindow(tk.Frame):
         #self.__consoleLog.pack(pady=10)
     def __displayGraph(self):
         random.seed()  # random number test case initialize
-        xdata, ydata, y1data = [], [], []
-        fig, ax = plt.subplots()
+        sc = SerialComm()
+        while (True):
+            print(sc.serialRead())
+        fig, ax = plt.subplot()
         ax.set_ylim(0, 10)  # initialize maximum value of the axis
         ax.set_xlim(0, 10)
-
-        def data_generator():
-            t = 0
-            while t < 1000:
-                t += 0.5
-                rand = random.randint(1, 10)
-                rand1 = random.randint(1, 15)
-                yield t, rand, rand1
-
-        def run(data):
-            t, rand, rand1 = data
-            xdata.append(t)
-            ydata.append(rand)
-            y1data.append(rand1)
-
-            xmin, xmax = ax.get_xlim()
-            if t >= xmax:  # update x-axis
-                ax.set_xlim(xmin + 1, xmax + 1)
-                ax.figure.canvas.draw()
-            # line.set_data(xdata,ydata)
-            ax.plot(xdata, ydata, color="red")
-            ax.plot(xdata, y1data, color="blue")
-            # return line,
-
-        ani = animation.FuncAnimation(fig, run, data_generator, interval=100)  # Interval updating each data point in ms
+        ani = animation.FuncAnimation(fig, self.run, init_func=self.init, interval=100)  # Interval updating each data point in ms
         plt.show()
 
+    def run(self,data):
+        xdata, ydata, y1data = [], [], []
+        ax = plt.subplot()
+        t, rand, rand1 = data
+        xdata.append(t)
+        ydata.append(rand)
+        y1data.append(rand1)
+        sc = SerialComm()
+        while(True):
+            print(sc.serialRead())
+        xmin, xmax = ax.get_xlim()
+        if t >= xmax:  # update x-axis
+            ax.set_xlim(xmin + 1, xmax + 1)
+            ax.figure.canvas.draw()
+        # line.set_data(xdata,ydata)
+        ax.plot(xdata, ydata, color="red")
+        ax.plot(xdata, y1data, color="blue")
+        # return line,
+    def init(self):
+        ax = plt.subplot()
+        line, = ax.plot([], [], lw=2)
+        line.set_data([], [])
+        return line,
     def __modeSelect(self):
         """Mode selector between different Heart modes (AOO,AAI,VOO,VVI)
         """
