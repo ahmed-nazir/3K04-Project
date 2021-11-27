@@ -5,7 +5,7 @@ import json
 import os
 import serial
 import threading
-from bitstring import BitArray
+#from bitstring import BitArray
 
 class FileIO:
     """Class used for storing, writing, and reading files
@@ -133,7 +133,7 @@ class SerialComm:
                 if (type(data) == str):
                     ser.write(data.encode())
                 else:
-                    ser.write(data+self.getSerialBit(data))
+                    ser.write(data)
                     print(data+self.getSerialBit(data))
                     print(self.getSerialBit(data))
                 ser.close()
