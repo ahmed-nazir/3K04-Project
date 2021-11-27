@@ -5,6 +5,7 @@ import json
 import os
 import serial
 import threading
+from bitstring import BitArray
 
 class FileIO:
     """Class used for storing, writing, and reading files
@@ -82,7 +83,7 @@ class SerialComm:
     port = None
     baudrate = 0
     bytesize = 0
-    parity = ''
+    parity = serial.PARITY_ODD
     stopbits = 1
     timeout = 1
     xonxoff = 0
@@ -132,7 +133,9 @@ class SerialComm:
                 if (type(data) == str):
                     ser.write(data.encode())
                 else:
-                    ser.write(data)
+                    ser.write(data+self.getSerialBit(data))
+                    print(data+self.getSerialBit(data))
+                    print(self.getSerialBit(data))
                 ser.close()
             except Exception:
                 ser.close()
@@ -141,6 +144,19 @@ class SerialComm:
 
     """Attempts to read from serial communication ports stored in port
     """
+    def getSerialBit(self,data):
+        val = []
+        if(type(data)==bytes):
+            val= "{:08b}".format(int(data.hex(),16))
+        sum=0
+        for item in val:
+            if(item == '1'):
+                sum+=1
+        if(sum%2==0):
+            return b'\x01'
+        return b'\x00'
+
+
     def serialRead(self):
         try:
             ser = serial.Serial(self.port, self.baudrate, self.bytesize, self.parity, self.stopbits, self.timeout,
