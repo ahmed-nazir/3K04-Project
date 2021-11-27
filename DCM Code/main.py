@@ -4,10 +4,16 @@ from tkinter import ttk
 from tkinter import *
 from tkinter import messagebox
 from matplotlib.figure import Figure
+from matplotlib import pyplot as plt
+import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
 NavigationToolbar2Tk)
 from IOStream import FileIO, SerialComm
 import math
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import random
 import serial
 
 from time import sleep
@@ -180,17 +186,34 @@ class GraphWindow(tk.Frame):
         The GraphWindow is a subclass of tk.Frame that stores all the components of the graph
     """
     __mainWindow=None
-
+    xdata, ydata, y1data = [], [], []
+    fig, ax = plt.subplots()
     def __init__(self, mainWindow):
         """Object Constructor
 
         Args:
             mainWindow (frame): the higher frame that stores the LoginWindow
         """
-        tk.Frame.__init__(self, mainWindow, bg="yellow", width="640", height="550")
+        tk.Frame.__init__(self, mainWindow, bg="yellow", width="200", height="200")
         self.__mainWindow = mainWindow
         self.plot()
-    
+        sc = SerialComm()
+        while(True):
+            self.plot()
+    def getValues(self,data):
+        t, rand, rand1 = data
+        self.xdata.append(t)
+        self.ydata.append(rand)
+        self.y1data.append(rand1)
+
+        xmin, xmax = self.ax.get_xlim()
+        if t >= xmax:  # update x-axis
+            self.ax.set_xlim(xmin + 1, xmax + 1)
+            self.ax.figure.canvas.draw()
+        # line.set_data(xdata,ydata)
+        self.ax.plot(self.xdata, self.ydata, color="red")
+        self.ax.plot(self.xdata, self.y1data, color="blue")
+
     def plot(self):
         """Draws the graph in the DCM window
         """
@@ -250,7 +273,7 @@ class DCMWindow(tk.Frame):
     __buttonSend = None
     __username = None
     __showState = ["readonly","readonly","readonly","readonly","readonly","readonly","readonly","readonly"]
-
+    __graphWindowButton = None
 
     def __init__(self, mainWindow,username):
         """Object Constructor
@@ -269,7 +292,7 @@ class DCMWindow(tk.Frame):
         self.__initalizeTopFrame(username)
         self.__centerFrame = Frame(self,bg=self.BACKGROUND_COLOR,width=1280,height=550)
         self.__centerFrame.pack()
-        self.__initalizeLeftFrame()
+        #self.__initalizeLeftFrame()
         self.__initalizeRightFrame()
         self.__initalizeBottomFrame()
 
@@ -290,13 +313,21 @@ class DCMWindow(tk.Frame):
         self.__logoutButton.grid(row=0, column=3,padx=230)
         self.__topFrame.pack()
 
+    #NO LONGER USED DELETE IN FUTURE
     def __initalizeLeftFrame(self):
         """Initializes left frame of the DCM Window
         """
         self.__leftFrame = Frame(self.__centerFrame, bg=self.BACKGROUND_COLOR, width=640, height=550)
         self.__leftFrame.grid(row=0,column=0)
+        #t1_gw = threading.Thread(target=self.startGraphWindow)
+        #t1_gw.start()
+        #self.__graphWindow = GraphWindow(self.__leftFrame)
+        #self.__graphWindow.pack()
+
+    def startGraphWindow(self):
         self.__graphWindow = GraphWindow(self.__leftFrame)
         self.__graphWindow.pack()
+
     def __initalizeRightFrame(self):
         """Initializes right frame of the DCM Window
         """
@@ -319,9 +350,43 @@ class DCMWindow(tk.Frame):
         self.__bottomFrame.pack()
         self.__buttonSend = Button(self.__bottomFrame,text="Send",command=self.__saveParameters,relief="flat", padx=100)
         self.__buttonSend.grid(row=0, column=1, padx=20, pady=20)
+        self.__graphWindowButton = Button(self.__bottomFrame,text="Display Graph",command=self.__displayGraph,relief="flat", padx=10)
+        self.__graphWindowButton.grid(row=0, column=3, padx=20, pady=20)
         #self.__consoleLog = Text(self.__bottomFrame,width=100,height=5,state="disabled")
         #self.__consoleLog.pack(pady=10)
-    
+    def __displayGraph(self):
+        random.seed()  # random number test case initialize
+        xdata, ydata, y1data = [], [], []
+        fig, ax = plt.subplots()
+        ax.set_ylim(0, 10)  # initialize maximum value of the axis
+        ax.set_xlim(0, 10)
+
+        def data_generator():
+            t = 0
+            while t < 1000:
+                t += 0.5
+                rand = random.randint(1, 10)
+                rand1 = random.randint(1, 15)
+                yield t, rand, rand1
+
+        def run(data):
+            t, rand, rand1 = data
+            xdata.append(t)
+            ydata.append(rand)
+            y1data.append(rand1)
+
+            xmin, xmax = ax.get_xlim()
+            if t >= xmax:  # update x-axis
+                ax.set_xlim(xmin + 1, xmax + 1)
+                ax.figure.canvas.draw()
+            # line.set_data(xdata,ydata)
+            ax.plot(xdata, ydata, color="red")
+            ax.plot(xdata, y1data, color="blue")
+            # return line,
+
+        ani = animation.FuncAnimation(fig, run, data_generator, interval=100)  # Interval updating each data point in ms
+        plt.show()
+
     def __modeSelect(self):
         """Mode selector between different Heart modes (AOO,AAI,VOO,VVI)
         """
@@ -581,16 +646,18 @@ class ContentWindow(tk.Frame):
 
 # Main script
 if __name__ == "__main__":
-    run = Run()
+   run = Run()
 
-    sc = SerialComm()
-    print(sc.getSerialPorts())
-    sc.setPort(sc.getSerialPorts()[0])
+    #sc = SerialComm()
+    #print(sc.getSerialPorts())
+   # sc.getSerialBit(b'\x0F')
+   # sc.setPort(sc.getSerialPorts()[0])
+
     #sc.serialWrite(b'\x16\x55\x01\x00\x00\x60\x40\x00\x00\x60\x40\x01\x01\x3C\x78\x40\x01\x40\x01')
     #sc.serialWrite(b'\x16\x22\x01\x00\x00\x60\x40\x00\x00\x60\x40\x01\x01\x3C\x78\x40\x01\x40\x01')
     #print(b'\x16\x55\x01\x00\x00\x60\x40\x00\x00\x60\x40\x01\x01\x3C\x78\x40\x01\x40\x01')
     #sc.serialWrite(b'\x16\x55\x01\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x01\x01\x00\xFA\x01\x40\x00\x00\x80\x40\x00\x00\x80\x40\x78\x05\x1E\x08\x00\x00\x00\x00\x00\x96')
-    sc.serialWrite(b'\x16\x22\x01\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x01\x01\x00\xFA\x01\x40\x00\x00\x80\x40\x00\x00\x80\x40\x78\x05\x1E\x08\x00\x00\x00\x00\x00\x96')
+    #sc.serialWrite(b'\x16\x22\x01\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x01\x01\x00\xFA\x01\x40\x00\x00\x80\x40\x00\x00\x80\x40\x78\x05\x1E\x08\x00\x00\x00\x00\x00\x96')
     #sc.serialWrite(b'\x16\x22\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
     #print(sc.serialRead())
     #print(b'\x16\x22\x01\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x01\x01\x00\xFA\x01\x40\x00\x00\x80\x40\x00\x00\x80\x40\x78\x05\x1E\x08\x00\x00\x00\x00\x00\x96')
