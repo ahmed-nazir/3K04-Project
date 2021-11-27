@@ -392,9 +392,9 @@ class DCMWindow(tk.Frame):
         arr.append((self.MODELABELS.index(self.__currentMode)).to_bytes(1, byteorder='little'))
         for i in range(self.NUMBEROFPARAMETERS):
             try:
-                    print(self.__entryArr[i]["state"])
-                    if (self.__entryArr[i]["state"] == "disabled"):
-                        raise ValueError()
+                    #print(self.__entryArr[i]["state"])
+                    #if (self.__entryArr[i]["state"] == "disabled"):
+                     #   raise ValueError()
                     if(self.TYPELIST[i]=="8"):
                         arr.append(int(self.__entryArr[i].get()).to_bytes(1, byteorder='little'))
                     elif(self.TYPELIST[i]=="f"):
