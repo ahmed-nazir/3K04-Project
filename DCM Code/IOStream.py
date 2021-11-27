@@ -134,8 +134,6 @@ class SerialComm:
                     ser.write(data.encode())
                 else:
                     ser.write(data)
-                    print(data+self.getSerialBit(data))
-                    print(self.getSerialBit(data))
                 ser.close()
             except Exception:
                 ser.close()
