@@ -361,23 +361,19 @@ class DCMWindow(tk.Frame):
         #self.__consoleLog.pack(pady=10)
     def __displayGraph(self):
         random.seed()  # random number test case initialize
-        c=0
+        sc.setPort(sc.getSerialPorts()[0])
         while True:
             if not write:
-                t = time.time()
+
                 sc.serialWrite(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
-                elapsed = time.time() - t
-                print(elapsed)
-
                 try:
-
                    # print("YES")
                     val, = struct.unpack('d', sc.serialRead())
                     print(val)
                 except Exception:
-                    if(c%500000==0):
-                        print(c)
-                    c+=1
+                    pass
+
+
             else:
                 sleep(1)
         print("end")

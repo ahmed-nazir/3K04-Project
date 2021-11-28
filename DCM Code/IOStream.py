@@ -84,7 +84,7 @@ class SerialComm:
     baudrate = 0
     bytesize = 0
     parity = serial.PARITY_ODD
-    stopbits = 1
+    stopbits = 0
     timeout = 1
     xonxoff = 0
     rtscts = 0
@@ -96,7 +96,7 @@ class SerialComm:
         self.bytesize = 8
         self.parity = serial.PARITY_ODD
         self.stopbits = serial.STOPBITS_ONE
-        self.timeout = 1
+        self.timeout = 0
         self.xonxoff = 0
         self.rtscts = 0
         self.ser = serial.Serial(self.port, self.baudrate, self.bytesize, self.parity, self.stopbits, self.timeout,
@@ -160,7 +160,7 @@ class SerialComm:
 
     def serialRead(self):
         try:
-            val = self.ser.read(1000)
+            val = self.ser.read(10)
             #ser.close()
             return val
         except Exception:
