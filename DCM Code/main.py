@@ -435,6 +435,12 @@ class DCMWindow(tk.Frame):
                 ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled",
                  "readonly", "disabled",  "readonly", "readonly", "readonly", "readonly", "readonly", "disabled"])
             self.__currentMode = "AAIR"
+        elif self.__modeList.get()=="VVIR":
+            self.__hideParameter(
+                ["readonly","readonly","disabled","readonly","disabled","readonly","disabled","readonly",
+                "disabled","readonly","readonly","readonly","readonly","readonly","readonly","disabled"]
+            )
+            self.__currentMode="VVIR"
         elif self.__modeList.get() == "VOOR":
             self.__hideParameter(
                 ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled",
