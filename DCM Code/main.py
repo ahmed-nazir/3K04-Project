@@ -327,7 +327,41 @@ class DCMWindow(tk.Frame):
             self.__hideParameter(
                 ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "readonly"])
             self.__currentMode = "VVI"
+<<<<<<< Updated upstream
 
+=======
+        elif self.__modeList.get() == "AOOR":
+            self.__hideParameter(
+                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "disabled", "disabled",
+                 "disabled", "disabled", "readonly", "readonly", "readonly", "readonly", "readonly", "disabled"])
+            self.__currentMode = "AOOR"
+        elif self.__modeList.get() == "AAIR":
+            self.__hideParameter(
+                ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled",
+                 "readonly", "disabled",  "readonly", "readonly", "readonly", "readonly", "readonly", "disabled"])
+            self.__currentMode = "AAIR"
+        elif self.__modeList.get()=="VVIR":
+            self.__hideParameter(
+                ["readonly","readonly","disabled","readonly","disabled","readonly","disabled","readonly",
+                "disabled","readonly","readonly","readonly","readonly","readonly","readonly","disabled"]
+            )
+            self.__currentMode="VVIR"
+        elif self.__modeList.get() == "VOOR":
+            self.__hideParameter(
+                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled",
+                 "disabled", "disabled",  "readonly", "readonly", "readonly", "readonly", "readonly", "disabled"])
+            self.__currentMode = "VOOR"
+        elif self.__modeList.get() == "DOO":
+            self.__hideParameter(
+                ["readonly", "readonly", "readonly", "readonly", "readonly", "readonly", "disabled", "disabled",
+                 "disabled", "disabled", "disabled", "disabled", "disabled", "disabled", "disabled", "readonly"])
+            self.__currentMode = "DOO"
+        elif self.__modeList.get() == "DOOR":
+            self.__hideParameter(
+                ["readonly", "readonly", "readonly", "readonly", "readonly", "readonly", "disabled", "disabled",
+                 "disabled", "disabled", "readonly", "readonly", "readonly", "readonly", "readonly", "readonly"])
+            self.__currentMode = "DOOR"
+>>>>>>> Stashed changes
     def __hideParameter(self,showState):
         """Changes that status of the drop-down selector for each parameter
 
