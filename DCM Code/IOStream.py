@@ -91,6 +91,7 @@ class SerialComm:
     """ Object constructor
     """
     def __init__(self):
+        super().__init__()
         self.baudrate=115200
         self.bytesize = 8
         self.parity = serial.PARITY_ODD
@@ -98,13 +99,16 @@ class SerialComm:
         self.timeout = 1
         self.xonxoff = 0
         self.rtscts = 0
-
+        self.ser = serial.Serial(self.port, self.baudrate, self.bytesize, self.parity, self.stopbits, self.timeout,
+                                self.xonxoff, self.rtscts)
 
     """ Set the current port used for Serial Communication
     """
     def setPort(self,port):
         if(port[0:3]=="COM"):
             self.port=port
+            self.ser = serial.Serial(self.port, self.baudrate, self.bytesize, self.parity, self.stopbits, self.timeout,
+                                     self.xonxoff, self.rtscts)
 
 
     """ Returns a list of all available serial ports in use
@@ -127,16 +131,15 @@ class SerialComm:
 
     def serialWrite(self, data):
         try:
-            ser = serial.Serial(self.port, self.baudrate, self.bytesize, self.parity, self.stopbits, self.timeout,
-                                self.xonxoff, self.rtscts)
+
             try:
                 if (type(data) == str):
-                    ser.write(data.encode())
+                    self.ser.write(data.encode())
                 else:
-                    ser.write(data)
-                ser.close()
+                    self.ser.write(data)
+                #ser.close()
             except Exception:
-                ser.close()
+                self.ser.close()
         except Exception:
             pass
 
@@ -157,10 +160,8 @@ class SerialComm:
 
     def serialRead(self):
         try:
-            ser = serial.Serial(self.port, self.baudrate, self.bytesize, self.parity, self.stopbits, self.timeout,
-                                self.xonxoff, self.rtscts)
-            val = ser.read(1000)
-            ser.close()
+            val = self.ser.read(1000)
+            #ser.close()
             return val
         except Exception:
             pass

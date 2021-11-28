@@ -19,6 +19,9 @@ import serial
 from time import sleep
 import time
 import threading
+
+sc = SerialComm()
+write = False
 class Run:
     """
     The Run class is used to start the program
@@ -197,7 +200,6 @@ class GraphWindow(tk.Frame):
         tk.Frame.__init__(self, mainWindow, bg="yellow", width="200", height="200")
         self.__mainWindow = mainWindow
         self.plot()
-        sc = SerialComm()
         #while(True):
          #   self.plot()
     def getValues(self,data):
@@ -359,10 +361,26 @@ class DCMWindow(tk.Frame):
         #self.__consoleLog.pack(pady=10)
     def __displayGraph(self):
         random.seed()  # random number test case initialize
-        sc = SerialComm()
-        while (True):
-            sc.serialWrite(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
-            print(sc.serialRead())
+        c=0
+        while True:
+            if not write:
+                t = time.time()
+                sc.serialWrite(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
+                elapsed = time.time() - t
+                print(elapsed)
+
+                try:
+
+                   # print("YES")
+                    val, = struct.unpack('d', sc.serialRead())
+                    print(val)
+                except Exception:
+                    if(c%500000==0):
+                        print(c)
+                    c+=1
+            else:
+                sleep(1)
+        print("end")
         fig, ax = plt.subplot()
         ax.set_ylim(0, 10)  # initialize maximum value of the axis
         ax.set_xlim(0, 10)
@@ -376,7 +394,6 @@ class DCMWindow(tk.Frame):
         xdata.append(t)
         ydata.append(rand)
         y1data.append(rand1)
-        sc = SerialComm()
         while(True):
             print(sc.serialRead())
         xmin, xmax = ax.get_xlim()
@@ -449,7 +466,8 @@ class DCMWindow(tk.Frame):
     def __saveParameters(self):
         """Exports the sent parameters to an external json file
         """
-
+        global write
+        write=True
         alt = FileIO(self.__username+self.__currentMode+self.PARAMETERFILE)
         f = alt.readText()
         arr = []
@@ -508,16 +526,18 @@ class DCMWindow(tk.Frame):
         #sc.serialWrite(val)
         print(self.__currentPort)
         print(val)
-        t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,    ))
-        t1_sc.start()
+        #t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,    ))
+        #t1_sc.start()
+        self.serialCommWrite(val)
 
     def serialCommWrite(self, val):
-        sc = SerialComm()
+        global write
         print(type(val))
-        sc.setPort(str(self.__currentPort))
+        #sc.setPort(str(self.__currentPort))
         print(sc.port)
         sc.serialWrite(val)
         print(val)
+        write=False
 
     def resetMode(self):
         """Reset the bradycardia state back to VOO
@@ -601,7 +621,6 @@ class DCMWindow(tk.Frame):
             self.RESPONSEFACTOR.append(i)
         for i in range(70,301,10):
             self.AVDELAY.append(i)
-
 class ContentWindow(tk.Frame):
     """ Extends tk.Frame
         The ContentWindow is a subclass of tk.Frame that stores all the components of the Content Window.
@@ -651,17 +670,18 @@ class ContentWindow(tk.Frame):
 
 # Main script
 if __name__ == "__main__":
-    #run = Run()
-
-    sc = SerialComm()
-    #print(sc.getSerialPorts())
-   # sc.getSerialBit(b'\x0F')
+    run = Run()
+    print(sc.getSerialPorts())
     sc.setPort(sc.getSerialPorts()[0])
 
     #sc.serialWrite(b'\x16\x55\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
     while(True):
         sc.serialWrite(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
-        val,=struct.unpack('d',sc.serialRead().index())
-        print(val)
+        try:
+            val,=struct.unpack('d',sc.serialRead())
+            print(val)
+        except Exception:
+            print("None")
+
 
     #print(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
