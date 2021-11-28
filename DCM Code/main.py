@@ -1,3 +1,4 @@
+from logging import root
 import struct
 import tkinter as tk
 from tkinter import ttk
@@ -296,8 +297,8 @@ class DCMWindow(tk.Frame):
         self.__centerFrame.pack()
         #self.__initalizeLeftFrame()
 
-        t1_gw = threading.Thread(target=self.__displayGraph)
-        t1_gw.start()
+        #t1_gw = threading.Thread(target=self.__displayGraph)
+        #t1_gw.start()
         self.__initalizeRightFrame()
         self.__initalizeBottomFrame()
 
@@ -361,27 +362,60 @@ class DCMWindow(tk.Frame):
         #self.__consoleLog.pack(pady=10)
     def __displayGraph(self):
         random.seed()  # random number test case initialize
-        sc.setPort(sc.getSerialPorts()[0])
-        while True:
-            if not write:
-
-                sc.serialWrite(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
-                try:
-                   # print("YES")
-                    val, = struct.unpack('d', sc.serialRead())
-                    print(val)
-                except Exception:
-                    pass
-
-
-            else:
-                sleep(1)
-        print("end")
-        fig, ax = plt.subplot()
+        fig, ax = plt.subplots()
+        xdata,ydata,y1data=[],[],[]
         ax.set_ylim(0, 10)  # initialize maximum value of the axis
         ax.set_xlim(0, 10)
-        ani = animation.FuncAnimation(fig, self.run, init_func=self.init, interval=100)  # Interval updating each data point in ms
-        plt.show()
+        #canvas=FigureCanvasTkAgg(fig,master=self)
+        #canvas.get_tk_widget()
+        #canvas.draw()
+        def data_generator():
+            t=0
+            while t<1000:
+                t+=0.5
+                rand=random.randint(1,10)
+                rand1=random.randint(1,15)
+            #sc.setPort(sc.getSerialPorts()[0])
+            #while True:
+            #    if not write:
+
+            #        sc.serialWrite(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
+            #        try:
+                    # print("YES")
+            #            val, = struct.unpack('d', sc.serialRead())
+                #        print(val)
+                 #   except Exception:
+                 #       val=0
+
+
+                #else:
+                #    sleep(1)
+                yield t,rand,rand1
+            
+        def run(data):
+            t,rand,rand1=data
+            xdata.append(t)
+            ydata.append(rand)
+            y1data.append(rand1)
+            xmin,xmax=ax.get_xlim()
+            if t>=xmax:
+                ax.set_xlim(xmin+1,xmax+1)
+                ax.figure.canvas.draw()
+            ax.plot(xdata,ydata,color="red")
+            ax.plot(xdata,y1data,color="blue")
+        canvas=FigureCanvasTkAgg(fig,master=self)
+        canvas.get_tk_widget().pack()
+        canvas.draw()
+        ani=animation.FuncAnimation(fig,run,data_generator,interval=100)
+        tk.mainloop()
+        
+        
+        print("end")
+        #fig, ax = plt.subplot()
+        #ax.set_ylim(0, 10)  # initialize maximum value of the axis
+        #ax.set_xlim(0, 10)
+        #ani = animation.FuncAnimation(fig, self.run, init_func=self.init, interval=100)  # Interval updating each data point in ms
+       
 
     def run(self,data):
         xdata, ydata, y1data = [], [], []
@@ -641,7 +675,7 @@ class ContentWindow(tk.Frame):
         tk.Frame.__init__(self,parent)
         self.__parent=parent
         parent.title("DCM")
-        parent.geometry("1200x600")
+        parent.geometry("1200x800")
         parent.resizable(False,False)
         parent.config(bg='#FAF9F6')
         self.__loginWindow = LoginWindow(self)
