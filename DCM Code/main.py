@@ -356,11 +356,6 @@ class DCMWindow(tk.Frame):
         #self.__initalizeLeftFrame()
         self.__initalizeRightFrame()
         self.__initalizeBottomFrame()
-        self.canvas = FigureCanvasTkAgg(f, self)
-        self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
-        self.toolbar = NavigationToolbar2Tk(self.canvas, self)
-        self.toolbar.update()
-        self.canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
     def __initalizeTopFrame(self,username):
         """Initializes top frame of the DCM Window
@@ -424,60 +419,48 @@ class DCMWindow(tk.Frame):
         t1_gw = threading.Thread(target=self.__displayGraph)
         t1_gw.start()
     def __displayGraph(self):
-        global write
         t = time.time()
-        tvlist = []
-        talist = []
+        tlist = []
         voltageV = []
         voltageA=[]
         lasttime = t
-
-        write = False
-        print(write)
-        while not write:
+        canvas = FigureCanvasTkAgg(f, self)
+        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+        toolbar = NavigationToolbar2Tk(canvas, self)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        while True:
             if not (sc.getCurrentPort() == None):
                 if not write:
                     sc.serialWrite(
                         b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
-                    temp =sc.serialRead()
-
                     try:
-                        val, = struct.unpack('d', temp[0:8])
-                        if (val > 0.4) and (val < 100):
-                            voltageA.append(val*3.3)
-                            talist.append(time.time() - t)
-                            print(val)
+                        # print("YES")
+                        val, = struct.unpack('d', sc.serialRead())
+                        if (abs(val) < 3 or (val > 0.3 and val < 3)) and val > 0:
+                            voltageA.append(val)
+                            voltageV.append(val)
+                            tlist.append(time.time() - t)
                     except Exception:
-                        voltageA.append(0.5*3.3)
-                        talist.append(time.time() - t)
-                    try:
-                        val, = struct.unpack('d', temp[8:len(temp)])
-                        if (val > 0.4) and (val < 5):
-                            voltageV.append(val*3.3)
-                            tvlist.append(time.time() - t)
-                            print(val)
-                    except Exception:
-                        voltageV.append(0.5*3.3)
-                        tvlist.append(time.time() - t)
+                        voltageA.append(0.5)
+                        voltageV.append(0.5)
+                        tlist.append(time.time() - t)
+                        pass
                 else:
-                    sleep(2)
-
+                    sleep(1)
                 # print(voltage)
                 if (len(voltageA) > 500):
                     voltageA.pop(0)
-                    talist.pop(0)
-
-                if (len(voltageV) > 600):
                     voltageV.pop(0)
-                    tvlist.pop(0)
+                    tlist.pop(0)
                 if time.time() - lasttime > 0.25:
                     # print(voltage)
                     lasttime = time.time()
                     a.clear()
                     # print(voltage)
-                    a.plot(talist, voltageA)
-                    a.plot(tvlist, voltageV)
-                    self.canvas.draw()
+                    a.plot(tlist, voltageA)
+                    a.plot(tlist, voltageV)
+                    canvas.draw()
 
         """
         parent = Toplevel(self.__mainWindow.getParent())
@@ -679,9 +662,9 @@ class DCMWindow(tk.Frame):
         #sc.serialWrite(val)
         print(self.__currentPort)
         print(val)
-        t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,))
-        t1_sc.start()
-        #self.serialCommWrite(val)
+        #t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,    ))
+        #t1_sc.start()
+        self.serialCommWrite(val)
 
     def serialCommWrite(self, val):
         global write

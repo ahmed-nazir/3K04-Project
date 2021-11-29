@@ -161,7 +161,7 @@ class SerialComm:
         return self.port
     def serialRead(self):
         try:
-            val = self.ser.read(16)
+            val = self.ser.read(10)
             #ser.close()
             return val
         except Exception:
