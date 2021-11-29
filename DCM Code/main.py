@@ -619,17 +619,50 @@ class DCMWindow(tk.Frame):
     def __saveParameters(self):
         """Exports the sent parameters to an external json file
         """
-        global write
-        write=True
-        alt = FileIO(self.__username+self.__currentMode+self.PARAMETERFILE)
-        f = alt.readText()
-        arr = []
-        if not(f):
-           alt.writeText("")
-           f = ""
-        for i in range(self.NUMBEROFPARAMETERS):
-            alt.writeText({self.PARAMLABELS[i]:""})
-        alt.writeText({"Mode":self.__currentMode})
+        print(self.__entryArr[10]["state"])
+        if (self.__entryArr[0].get())>(self.__entryArr[1].get()):
+            print(self.__entryArr[0].get())
+            print(self.__entryArr[1].get())
+            messagebox.showinfo("Error:Invalid inputs","The lower rate limit has to be lower than the higher rate limit")
+            for i in range(2):
+                self.__entryArr[i].set("")
+        elif (self.__entryArr[10]["state"]=="readonly") and ((self.__entryArr[10].get())<(self.__entryArr[0].get())):
+            print(self.__entryArr[10].get())
+            print(self.__entryArr[0].get())
+            messagebox.showinfo("Error:Invalid inputs","The Maximum sensing rate has to be between URL and LRL")
+            self.__entryArr[10].set("")
+        elif (self.__entryArr[10]["state"]=="readonly") and ((self.__entryArr[10].get())>(self.__entryArr[1].get())):
+            print(self.__entryArr[10].get())
+            print(self.__entryArr[1].get())
+            messagebox.showinfo("Error:Invalid inputs","The Maximum sensing rate has to be between URL and LRL")
+            self.__entryArr[10].set("")
+        else:
+            global write
+            write=True
+            alt = FileIO(self.__username+self.__currentMode+self.PARAMETERFILE)
+            f = alt.readText()
+            arr = []
+            if not(f):
+                alt.writeText("")
+                f = ""
+            for i in range(self.NUMBEROFPARAMETERS):
+                alt.writeText({self.PARAMLABELS[i]:""})
+            alt.writeText({"Mode":self.__currentMode})
+            for i in range(self.NUMBEROFPARAMETERS):
+                print(self.__entryArr[i]["state"])
+                if (self.__entryArr[i]["state"]=="readonly"):
+                    text={self.PARAMLABELS[i]:self.__entryArr[i].get()}
+                    alt.writeText(text)
+                    print(text)
+            alt1=FileIO("Usernamemode")
+            f=alt1.readText()
+            if not(f):
+                alt1.writeText("")
+                f=""
+            alt1.writeText({self.__username:self.__currentMode})
+            print(self.__entryArr[0].get())
+            print(self.__entryArr[10].get())
+            print(self.__entryArr[1].get())
         arr.append((self.MODELABELS.index(self.__currentMode)).to_bytes(1, byteorder='little'))
         for i in range(self.NUMBEROFPARAMETERS):
             try:
@@ -695,11 +728,36 @@ class DCMWindow(tk.Frame):
     def resetMode(self):
         """Reset the bradycardia state back to VOO
         """
-        self.__modeList.set("VOO")
-        self.__hideParameter(["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled"])
-        self.__currentMode="VOO"
-        for item in self.__entryArr:
-            item.set("")
+        alt=FileIO("Usernamemode")
+        data=alt.readText()
+        if not(data):
+            alt.writeText("")
+            data = ""
+        if (len(data)==0 ) :
+            self.__modeList.set("VOO")
+            self.__hideParameter(
+                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled","disabled", "disabled","disabled", "disabled","disabled", "disabled","disabled", "disabled"])
+        elif self.__username not in data:
+            self.__modeList.set("VOO")
+            self.__hideParameter(
+                    ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled","disabled", "disabled","disabled", "disabled","disabled", "disabled","disabled", "disabled"])
+            for item in self.__entryArr:
+                item.set("")
+        else:
+                self.__modeList.set(data[self.__username])
+                alt = FileIO(self.__username+data[self.__username]+self.PARAMETERFILE)
+                f = alt.readText()
+                #if not(f):
+                #    alt.writeText("")
+                #    f=""
+                for item in self.__entryArr:
+                    item.set("")
+                for i in range(16):
+                    if list(f.values())[i]=="" :
+                        self.__entryArr[i].config(state = "disabled")
+                    else:
+                        self.__entryArr[i].config(state = "readonly")
+                        self.__entryArr[i].set(list(f.values())[i])
 
 
     def checkPort(self):
