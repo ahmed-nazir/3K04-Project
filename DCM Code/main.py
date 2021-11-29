@@ -259,7 +259,7 @@ class DCMWindow(tk.Frame):
     BACKGROUND_COLOR = "#FAF9F6"
     SERIALCOMMODE = SerialComm().getSerialPorts()
     ACTIVITYTHRESHOLDDICT = {"V-Low":1.1,"Low":1.3,"Med-Low":1.5,"Med":1.7,"Med-High":1.9,"High":2.1,"V-High":2.3}
-
+    Usernamemode={}
     # Private Variables
     __mainWindow = None
     __labelArr=[]
@@ -404,10 +404,10 @@ class DCMWindow(tk.Frame):
             ax.plot(xdata,ydata,color="red")
             ax.plot(xdata,y1data,color="blue")
         canvas=FigureCanvasTkAgg(fig,master=self)
-        canvas.get_tk_widget().pack()
+        canvas.get_tk_widget()
         canvas.draw()
         ani=animation.FuncAnimation(fig,run,data_generator,interval=100)
-        tk.mainloop()
+        plt.show()
         
         
         print("end")
@@ -484,6 +484,12 @@ class DCMWindow(tk.Frame):
                 ["readonly", "readonly", "readonly", "readonly", "readonly", "readonly", "disabled", "disabled",
                  "disabled", "disabled", "readonly", "readonly", "readonly", "readonly", "readonly", "readonly"])
             self.__currentMode = "DOOR"
+        elif self.__modeList.get()=="VVIR":
+            self.__hideParameter(
+                ["readonly","readonly","disabled","readonly","disabled","readonly","disabled","readonly",
+                "disabled","readonly","readonly","readonly","readonly","readonly","readonly","disabled"]
+            )
+            self.__currentMode="VVIR"
     def __hideParameter(self,showState):
         """Changes that status of the drop-down selector for each parameter
 
@@ -507,9 +513,17 @@ class DCMWindow(tk.Frame):
         for i in range(self.NUMBEROFPARAMETERS):
             alt.writeText({self.PARAMLABELS[i]:""})
         alt.writeText({"Mode":self.__currentMode})
+        for i in range(self.NUMBEROFPARAMETERS):
+            print(self.__entryArr[i]["state"])
+            #if (self.__entryArr[i]["state"]=="readonly"):
+            text={self.PARAMLABELS[i]:self.__entryArr[i].get()}
+            alt.writeText(text)
+            print(text)
+        self.Usernamemode[self.__username]=self.__currentMode
+        print(self.Usernamemode)
         arr.append((self.MODELABELS.index(self.__currentMode)).to_bytes(1, byteorder='little'))
         for i in range(self.NUMBEROFPARAMETERS):
-            try:
+            try:    
                     #print(self.__entryArr[i]["state"])
                     #if (self.__entryArr[i]["state"] == "disabled"):
                      #   raise ValueError()
@@ -543,9 +557,9 @@ class DCMWindow(tk.Frame):
                         arr.append(b'\x00')
                         arr.append(b'\x00')
 
-                if (self.__entryArr[i]["state"] == "readonly"):
-                    text = {self.PARAMLABELS[i]:self.__entryArr[i].get()}
-                    alt.writeText(text)
+                #if (self.__entryArr[i]["state"] == "readonly"):
+                #    text = {self.PARAMLABELS[i]:self.__entryArr[i].get()}
+                #    alt.writeText(text)
 
         print(arr)
         #sc = SerialComm()
@@ -572,11 +586,29 @@ class DCMWindow(tk.Frame):
     def resetMode(self):
         """Reset the bradycardia state back to VOO
         """
-        self.__modeList.set("VOO")
-        self.__hideParameter(["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled"])
-        self.__currentMode="VOO"
-        for item in self.__entryArr:
-            item.set("")
+        if (len(self.Usernamemode)==0 ) :
+            self.__modeList.set("VOO")
+            self.__hideParameter(
+                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled"])
+        
+        elif self.__username not in self.Usernamemode:
+            self.__modeList.set("VOO")
+            self.__hideParameter(
+                ["readonly", "readonly", "disabled", "readonly", "disabled", "readonly", "disabled", "disabled"])
+            for item in self.__entryArr:
+                item.set("")
+        else:
+            self.__modeList.set(self.Usernamemode[self.__username])
+            alt = FileIO(self.__username+self.Usernamemode[self.__username]+self.PARAMETERFILE)
+            f = alt.readText()
+            for item in self.__entryArr:
+                item.set("")
+            for i in range(16):
+                if list(f.values())[i]=="" :
+                    self.__entryArr[i].config(state = "disabled")
+                else:
+                    self.__entryArr[i].config(state = "readonly")
+                    self.__entryArr[i].set(list(f.values())[i])
 
 
     def checkPort(self):
