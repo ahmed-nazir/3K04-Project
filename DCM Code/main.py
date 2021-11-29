@@ -726,7 +726,7 @@ class ContentWindow(tk.Frame):
         """ The method disables the DCM interface and enables the login window screen, along with formatting
         """
         self.__DCM.pack_forget()
-        #self.__loginWindow.clearVal()
+        self.__loginWindow.clearVal()
         self.__loginWindow.setPaddingVisible()
         self.__loginWindow.pack()
 
