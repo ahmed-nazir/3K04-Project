@@ -157,7 +157,8 @@ class SerialComm:
             return b'\x01'
         return b'\x00'
 
-
+    def getCurrentPort(self):
+        return self.port
     def serialRead(self):
         try:
             val = self.ser.read(10)

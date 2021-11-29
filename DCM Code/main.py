@@ -16,12 +16,65 @@ import matplotlib.animation as animation
 import random
 import serial
 
+
 from time import sleep
 import time
 import threading
 
 sc = SerialComm()
 write = False
+
+f = Figure(figsize=(5, 5), dpi=100)
+a = f.add_subplot(111,ylim=(0,1))
+def animate(i):
+
+    thr = threading.Thread(target=animateThread)
+    thr.start()
+def animateThread():
+    t = time.time()
+    tlist = []
+    voltage = []
+    lasttime =t
+    while True:
+        if not write:
+            sc.serialWrite(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
+            try:
+                # print("YES")
+                val, = struct.unpack('d', sc.serialRead())
+                if (abs(val)<3 or (val>0.3 and val<3)) and val>0:
+                    voltage.append(val)
+                    tlist.append(time.time() - t)
+            except Exception:
+                voltage.append(0.5)
+                tlist.append(time.time() - t)
+                pass
+        else:
+            sleep(1)
+        #print(voltage)
+        if(len(voltage) >500):
+            voltage.pop(0)
+            tlist.pop(0)
+        if time.time()-lasttime > 0.25:
+            #print(voltage)
+            lasttime=time.time()
+            a.clear()
+            print(voltage)
+            a.plot(tlist, voltage)
+
+    """
+    pullData = open("sample.txt", "r").read()
+    dataList = pullData.split('\n')
+    xList = []
+    yList = []
+    for eachLine in dataList:
+        if len(eachLine) > 1:
+            x, y = eachLine.split(',')
+            xList.append(int(x))
+            yList.append(int(y))
+
+    a.clear()
+    a.plot(xList, yList)
+    """
 class Run:
     """
     The Run class is used to start the program
@@ -295,9 +348,6 @@ class DCMWindow(tk.Frame):
         self.__centerFrame = Frame(self,bg=self.BACKGROUND_COLOR,width=1280,height=550)
         self.__centerFrame.pack()
         #self.__initalizeLeftFrame()
-
-        t1_gw = threading.Thread(target=self.__displayGraph)
-        t1_gw.start()
         self.__initalizeRightFrame()
         self.__initalizeBottomFrame()
 
@@ -355,34 +405,65 @@ class DCMWindow(tk.Frame):
         self.__bottomFrame.pack()
         self.__buttonSend = Button(self.__bottomFrame,text="Send",command=self.__saveParameters,relief="flat", padx=100)
         self.__buttonSend.grid(row=0, column=1, padx=20, pady=20)
-        self.__graphWindowButton = Button(self.__bottomFrame,text="Display Graph",command=self.__displayGraph,relief="flat", padx=10)
+        self.__graphWindowButton = Button(self.__bottomFrame,text="Display Graph",command=self.__graphButtonClicked,relief="flat", padx=10)
         self.__graphWindowButton.grid(row=0, column=3, padx=20, pady=20)
         #self.__consoleLog = Text(self.__bottomFrame,width=100,height=5,state="disabled")
         #self.__consoleLog.pack(pady=10)
+    def __graphButtonClicked(self):
+        t1_gw = threading.Thread(target=self.__displayGraph)
+        t1_gw.start()
     def __displayGraph(self):
+        parent = Toplevel(self.__mainWindow.getParent())
+        tk.Frame.__init__(self, parent)
+        label = tk.Label(self, text="Graph Page!")
+        label.pack(pady=10, padx=10)
+        canvas = FigureCanvasTkAgg(f, parent)
+
+        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+
+        toolbar = NavigationToolbar2Tk(canvas, parent)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        """
         random.seed()  # random number test case initialize
         sc.setPort(sc.getSerialPorts()[0])
-        while True:
-            if not write:
+        print("YES")
+        fig = plt.Figure()
+        newWin = Toplevel(self.__mainWindow)
+        x = np.arange(0, 2 * np.pi, 0.01)
+        def animate(i):
+            line.set_ydata(np.sin(x + i / 10.0))  # update the data
+            return line,
+            while True:
+                if not write:
+                    sc.serialWrite(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
+                    try:
+                       # print("YES")
+                        val, = struct.unpack('d', sc.serialRead())
+                        print(val)
+                    except Exception:
+                        pass
+                else:
+                    sleep(1)
+            
+        label = tk.Label(newWin, text="SHM Simulation").grid(column=0, row=0)
 
-                sc.serialWrite(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
-                try:
-                   # print("YES")
-                    val, = struct.unpack('d', sc.serialRead())
-                    print(val)
-                except Exception:
-                    pass
+        canvas = FigureCanvasTkAgg(fig, master=newWin)
+        canvas.get_tk_widget().grid(column=0, row=1)
 
+        ax = fig.add_subplot(111)
+        line, = ax.plot(x, np.sin(x))
+        ani = animation.FuncAnimation(fig, animate, np.arange(1, 200), interval=25, blit=False)
+        tk.mainloop()
 
-            else:
-                sleep(1)
-        print("end")
+            
         fig, ax = plt.subplot()
         ax.set_ylim(0, 10)  # initialize maximum value of the axis
         ax.set_xlim(0, 10)
         ani = animation.FuncAnimation(fig, self.run, init_func=self.init, interval=100)  # Interval updating each data point in ms
         plt.show()
-
+        """
+        """
     def run(self,data):
         xdata, ydata, y1data = [], [], []
         ax = plt.subplot()
@@ -405,6 +486,8 @@ class DCMWindow(tk.Frame):
         line, = ax.plot([], [], lw=2)
         line.set_data([], [])
         return line,
+    """
+
     def __modeSelect(self):
         """Mode selector between different Heart modes (AOO,AAI,VOO,VVI)
         """
@@ -555,6 +638,7 @@ class DCMWindow(tk.Frame):
         """Checks which port is selected
         """
         self.__currentPort=self.__comMode.get()
+        sc.setPort(self.__currentPort)
         t2_sc = threading.Thread(target=self.runPort)
         t2_sc.daemon=True
         t2_sc.start()
@@ -669,9 +753,11 @@ class ContentWindow(tk.Frame):
         #self.__loginWindow.clearVal()
         self.__loginWindow.setPaddingVisible()
         self.__loginWindow.pack()
-
+    def getParent(self):
+        return self.__parent
 # Main script
 if __name__ == "__main__":
+    ani = animation.FuncAnimation(f,animate, interval=1000)
     run = Run()
     print(sc.getSerialPorts())
     sc.setPort(sc.getSerialPorts()[0])
