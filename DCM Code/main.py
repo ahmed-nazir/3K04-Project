@@ -27,39 +27,45 @@ write = False
 f = Figure(figsize=(5, 5), dpi=100)
 a = f.add_subplot(111,ylim=(0,1))
 def animate(i):
-
+    print("Hi")
     thr = threading.Thread(target=animateThread)
     thr.start()
 def animateThread():
     t = time.time()
     tlist = []
-    voltage = []
+    voltageA = []
+    voltageV = []
     lasttime =t
     while True:
-        if not write:
-            sc.serialWrite(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
-            try:
-                # print("YES")
-                val, = struct.unpack('d', sc.serialRead())
-                if (abs(val)<3 or (val>0.3 and val<3)) and val>0:
-                    voltage.append(val)
+        if not(sc.getCurrentPort() ==None):
+            if not write:
+                sc.serialWrite(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
+                try:
+                    # print("YES")
+                    val, = struct.unpack('d', sc.serialRead())
+                    if (abs(val)<3 or (val>0.3 and val<3)) and val>0:
+                        voltageA.append(val)
+                        voltageV.append(val*3)
+                        tlist.append(time.time() - t)
+                except Exception:
+                    voltageA.append(0.5)
+                    voltageV.append(0.5)
                     tlist.append(time.time() - t)
-            except Exception:
-                voltage.append(0.5)
-                tlist.append(time.time() - t)
-                pass
-        else:
-            sleep(1)
-        #print(voltage)
-        if(len(voltage) >500):
-            voltage.pop(0)
-            tlist.pop(0)
-        if time.time()-lasttime > 0.25:
+                    pass
+            else:
+                sleep(1)
             #print(voltage)
-            lasttime=time.time()
-            a.clear()
-            print(voltage)
-            a.plot(tlist, voltage)
+            if(len(voltageA) >500):
+                voltageA.pop(0)
+                voltageV.pop(0)
+                tlist.pop(0)
+            if time.time()-lasttime > 0.25:
+                #print(voltage)
+                lasttime=time.time()
+                a.clear()
+                #print(voltage)
+                a.plot(tlist, voltageA)
+                a.plot(tlist,voltageV)
 
     """
     pullData = open("sample.txt", "r").read()
@@ -413,6 +419,50 @@ class DCMWindow(tk.Frame):
         t1_gw = threading.Thread(target=self.__displayGraph)
         t1_gw.start()
     def __displayGraph(self):
+        t = time.time()
+        tlist = []
+        voltageV = []
+        voltageA=[]
+        lasttime = t
+        canvas = FigureCanvasTkAgg(f, self)
+        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+        toolbar = NavigationToolbar2Tk(canvas, self)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        while True:
+            if not (sc.getCurrentPort() == None):
+                if not write:
+                    sc.serialWrite(
+                        b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
+                    try:
+                        # print("YES")
+                        val, = struct.unpack('d', sc.serialRead())
+                        if (abs(val) < 3 or (val > 0.3 and val < 3)) and val > 0:
+                            voltageA.append(val)
+                            voltageV.append(val)
+                            tlist.append(time.time() - t)
+                    except Exception:
+                        voltageA.append(0.5)
+                        voltageV.append(0.5)
+                        tlist.append(time.time() - t)
+                        pass
+                else:
+                    sleep(1)
+                # print(voltage)
+                if (len(voltageA) > 500):
+                    voltageA.pop(0)
+                    voltageV.pop(0)
+                    tlist.pop(0)
+                if time.time() - lasttime > 0.25:
+                    # print(voltage)
+                    lasttime = time.time()
+                    a.clear()
+                    # print(voltage)
+                    a.plot(tlist, voltageA)
+                    a.plot(tlist, voltageV)
+                    canvas.draw()
+
+        """
         parent = Toplevel(self.__mainWindow.getParent())
         tk.Frame.__init__(self, parent)
         label = tk.Label(self, text="Graph Page!")
@@ -424,6 +474,7 @@ class DCMWindow(tk.Frame):
         toolbar = NavigationToolbar2Tk(canvas, parent)
         toolbar.update()
         canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        """
         """
         random.seed()  # random number test case initialize
         sc.setPort(sc.getSerialPorts()[0])
@@ -731,7 +782,7 @@ class ContentWindow(tk.Frame):
         tk.Frame.__init__(self,parent)
         self.__parent=parent
         parent.title("DCM")
-        parent.geometry("1200x600")
+        parent.geometry("1200x700")
         parent.resizable(False,False)
         parent.config(bg='#FAF9F6')
         self.__loginWindow = LoginWindow(self)
@@ -765,6 +816,7 @@ if __name__ == "__main__":
     #sc.serialWrite(b'\x16\x55\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
     while(True):
         sc.serialWrite(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
+
         try:
             val,=struct.unpack('d',sc.serialRead())
             print(val)
