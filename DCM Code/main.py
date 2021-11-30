@@ -529,7 +529,7 @@ class DCMWindow(tk.Frame):
         """
         global write
         print(type(val))
-        print(sc.port)
+        print(sc.__port)
         sc.serialWrite(val)
         print(val)
         write = False
