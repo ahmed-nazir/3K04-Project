@@ -145,7 +145,7 @@ class SerialComm:
 
     """Attempts to read from serial communication ports stored in port
     """
-    def getSerialBit(self,data):
+    def getParityBit(self,data):
         val = []
         if(type(data)==bytes):
             val= "{:08b}".format(int(data.hex(),16))

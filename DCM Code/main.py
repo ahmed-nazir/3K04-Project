@@ -4,87 +4,22 @@ from tkinter import ttk
 from tkinter import *
 from tkinter import messagebox
 from matplotlib.figure import Figure
-from matplotlib import pyplot as plt
-import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
                                                NavigationToolbar2Tk)
 from IOStream import FileIO, SerialComm
-import math
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import random
-import serial
-
 from time import sleep
 import time
 import threading
 
+# Global variables
+# sc is the static serial communication variable
 sc = SerialComm()
+# write is used to detect whether the serial port is reading or writing so it does not interfere with each mode
 write = False
 
+#Figures for the ECG
 f = Figure(figsize=(5, 5), dpi=100)
 a = f.add_subplot(111, ylim=(0, 1))
-
-
-def animate(i):
-    print("Hi")
-    thr = threading.Thread(target=animateThread)
-    thr.start()
-
-
-def animateThread():
-    t = time.time()
-    tlist = []
-    voltageA = []
-    voltageV = []
-    lasttime = t
-    while True:
-        if not (sc.getCurrentPort() == None):
-            if not write:
-                sc.serialWrite(
-                    b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
-                try:
-                    # print("YES")
-                    val, = struct.unpack('d', sc.serialRead())
-                    if (abs(val) < 3 or (val > 0.3 and val < 3)) and val > 0:
-                        voltageA.append(val)
-                        voltageV.append(val * 3)
-                        tlist.append(time.time() - t)
-                except Exception:
-                    voltageA.append(0.5)
-                    voltageV.append(0.5)
-                    tlist.append(time.time() - t)
-                    pass
-            else:
-                sleep(1)
-            # print(voltage)
-            if (len(voltageA) > 500):
-                voltageA.pop(0)
-                voltageV.pop(0)
-                tlist.pop(0)
-            if time.time() - lasttime > 0.25:
-                # print(voltage)
-                lasttime = time.time()
-                a.clear()
-                # print(voltage)
-                a.plot(tlist, voltageA)
-                a.plot(tlist, voltageV)
-
-    """
-    pullData = open("sample.txt", "r").read()
-    dataList = pullData.split('\n')
-    xList = []
-    yList = []
-    for eachLine in dataList:
-        if len(eachLine) > 1:
-            x, y = eachLine.split(',')
-            xList.append(int(x))
-            yList.append(int(y))
-
-    a.clear()
-    a.plot(xList, yList)
-    """
 
 
 class Run:
@@ -181,9 +116,6 @@ class LoginWindow(tk.Frame):
         """
         self.__password = self.__passwordField.get()
         self.__username = self.__usernameField.get()
-        # Code below is when there is a matching password and key, the program
-        # will remove the password screen and add the main program
-        # --Note: figure out a way to only remove content pane instead of removing all elements in content pane
 
     def checkPass(self):
         """Checks whether the credentials the user inputted is correct. Calls the higher frame window’s login function if successful.
@@ -191,11 +123,11 @@ class LoginWindow(tk.Frame):
         self.getText()
         alt = FileIO(self.PASSWORDFILE)
         f = alt.readText()
-        if not (f):
+        if not f:
             alt.writeText("")
             f = ""
 
-        if (self.__username == "" or self.__password == ""):
+        if self.__username == "" or self.__password == "":
             messagebox.showinfo("Error: No Data Entered", "NO DATA ENTERED")
         elif self.__username in f:
             if self.__password == f[self.__username]:
@@ -214,9 +146,9 @@ class LoginWindow(tk.Frame):
         f = alt.readText()
         self.getText()
         text = {self.__username: self.__password}
-        if (self.__username == "" or self.__password == ""):
+        if self.__username == "" or self.__password == "":
             messagebox.showinfo("Error: No Data Entered", "NO DATA ENTERED")
-        elif (self.__username in f):
+        elif self.__username in f:
             messagebox.showinfo("Error: User Already Registered", "Try another username")
         elif d == 10:
             messagebox.showinfo("User Validation", "Maximum number of users reached")
@@ -244,52 +176,6 @@ class LoginWindow(tk.Frame):
         """ Helper function for formatting
         """
         self.__paddingFrame.pack()
-
-
-class GraphWindow(tk.Frame):
-    """ Extends tk.Frame
-        The GraphWindow is a subclass of tk.Frame that stores all the components of the graph
-    """
-    __mainWindow = None
-    xdata, ydata, y1data = [], [], []
-    fig, ax = plt.subplots()
-
-    def __init__(self, mainWindow):
-        """Object Constructor
-
-        Args:
-            mainWindow (frame): the higher frame that stores the LoginWindow
-        """
-        tk.Frame.__init__(self, mainWindow, bg="yellow", width="200", height="200")
-        self.__mainWindow = mainWindow
-        self.plot()
-        # while(True):
-        #   self.plot()
-
-    def getValues(self, data):
-        t, rand, rand1 = data
-        self.xdata.append(t)
-        self.ydata.append(rand)
-        self.y1data.append(rand1)
-
-        xmin, xmax = self.ax.get_xlim()
-        if t >= xmax:  # update x-axis
-            self.ax.set_xlim(xmin + 1, xmax + 1)
-            self.ax.figure.canvas.draw()
-        # line.set_data(xdata,ydata)
-        self.ax.plot(self.xdata, self.ydata, color="red")
-        self.ax.plot(self.xdata, self.y1data, color="blue")
-
-    def plot(self):
-        """Draws the graph in the DCM window
-        """
-        fig = Figure(figsize=(4, 4), dpi=100)
-        y = [math.sin(i / 10) for i in range(1, 200)]
-        plot1 = fig.add_subplot(111)
-        plot1.plot(y)
-        canvas = FigureCanvasTkAgg(fig, master=self)
-        canvas.draw()
-        canvas.get_tk_widget().pack()
 
 
 class DCMWindow(tk.Frame):
@@ -364,7 +250,6 @@ class DCMWindow(tk.Frame):
         self.__initalizeTopFrame(username)
         self.__centerFrame = Frame(self, bg=self.BACKGROUND_COLOR, width=1280, height=550)
         self.__centerFrame.pack()
-        # self.__initalizeLeftFrame()
         self.__initalizeRightFrame()
         self.__initalizeBottomFrame()
         self.canvas = FigureCanvasTkAgg(f, self)
@@ -391,21 +276,6 @@ class DCMWindow(tk.Frame):
         self.__logoutButton.grid(row=0, column=3, padx=230)
         self.__topFrame.pack()
 
-    # NO LONGER USED DELETE IN FUTURE
-    def __initalizeLeftFrame(self):
-        """Initializes left frame of the DCM Window
-        """
-        self.__leftFrame = Frame(self.__centerFrame, bg=self.BACKGROUND_COLOR, width=640, height=550)
-        self.__leftFrame.grid(row=0, column=0)
-        # t1_gw = threading.Thread(target=self.startGraphWindow)
-        # t1_gw.start()
-        # self.__graphWindow = GraphWindow(self.__leftFrame)
-        # self.__graphWindow.pack()
-
-    def startGraphWindow(self):
-        self.__graphWindow = GraphWindow(self.__leftFrame)
-        self.__graphWindow.pack()
-
     def __initalizeRightFrame(self):
         """Initializes right frame of the DCM Window
         """
@@ -417,7 +287,6 @@ class DCMWindow(tk.Frame):
         bottomRight.pack()
         self.__saveButton = Button(topRight, text="Select Mode", command=self.__modeSelect, relief="flat", padx=20)
         self.__saveButton.grid(row=0, column=1, padx=20, pady=20)
-        # self.__modeList = OptionMenu(topRight, self.__currentMode, *self.MODELABELS)
         self.__modeList = ttk.Combobox(topRight, values=self.MODELABELS, state="readonly")
         self.__modeList.grid(row=0, column=0, padx=20, pady=20)
         self.__initalizeParameterList(bottomRight)
@@ -433,14 +302,16 @@ class DCMWindow(tk.Frame):
         self.__graphWindowButton = Button(self.__bottomFrame, text="Display Graph", command=self.__graphButtonClicked,
                                           relief="flat", padx=10)
         self.__graphWindowButton.grid(row=0, column=3, padx=20, pady=20)
-        # self.__consoleLog = Text(self.__bottomFrame,width=100,height=5,state="disabled")
-        # self.__consoleLog.pack(pady=10)
 
     def __graphButtonClicked(self):
+        """ Function to detect when the display graph button is pressed
+        """
         t1_gw = threading.Thread(target=self.__displayGraph)
         t1_gw.start()
 
     def __displayGraph(self):
+        """ Threaded function to display the ECG graph on the DCM
+        """
         global write
         t = time.time()
         tvlist = []
@@ -452,10 +323,11 @@ class DCMWindow(tk.Frame):
         write = False
         print(write)
         while not write:
-            if not (sc.getCurrentPort() == None):
+            if not (sc.getCurrentPort() is None):
                 if not write:
                     sc.serialWrite(
-                        b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
+                        b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40'
+                        b'\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
                     temp = sc.serialRead()
 
                     try:
@@ -463,7 +335,6 @@ class DCMWindow(tk.Frame):
                         if (val > 0.4) and (val < 100):
                             voltageA.append(val * 3.3)
                             talist.append(time.time() - t)
-                            #print(val)
                     except Exception:
                         voltageA.append(0.5 * 3.3)
                         talist.append(time.time() - t)
@@ -472,111 +343,29 @@ class DCMWindow(tk.Frame):
                         if (val > 0.4) and (val < 5):
                             voltageV.append(val * 3.3)
                             tvlist.append(time.time() - t)
-                            #print(val)
                     except Exception:
                         voltageV.append(0.5 * 3.3)
                         tvlist.append(time.time() - t)
                 else:
                     sleep(2)
 
-                # print(voltage)
-                if (len(voltageA) > 500):
+                if len(voltageA) > 500:
                     voltageA.pop(0)
                     talist.pop(0)
 
-                if (len(voltageV) > 600):
+                if len(voltageV) > 600:
                     voltageV.pop(0)
                     tvlist.pop(0)
                 if time.time() - lasttime > 0.25:
-                    # print(voltage)
                     lasttime = time.time()
                     a.clear()
-                    # print(voltage)
                     a.plot(talist, voltageA)
                     a.plot(tvlist, voltageV)
                     self.canvas.draw()
 
-        """
-        parent = Toplevel(self.__mainWindow.getParent())
-        tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Graph Page!")
-        label.pack(pady=10, padx=10)
-        canvas = FigureCanvasTkAgg(f, parent)
-
-        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
-
-        toolbar = NavigationToolbar2Tk(canvas, parent)
-        toolbar.update()
-        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-        """
-        """
-        random.seed()  # random number test case initialize
-        sc.setPort(sc.getSerialPorts()[0])
-        print("YES")
-        fig = plt.Figure()
-        newWin = Toplevel(self.__mainWindow)
-        x = np.arange(0, 2 * np.pi, 0.01)
-        def animate(i):
-            line.set_ydata(np.sin(x + i / 10.0))  # update the data
-            return line,
-            while True:
-                if not write:
-                    sc.serialWrite(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
-                    try:
-                       # print("YES")
-                        val, = struct.unpack('d', sc.serialRead())
-                        print(val)
-                    except Exception:
-                        pass
-                else:
-                    sleep(1)
-
-        label = tk.Label(newWin, text="SHM Simulation").grid(column=0, row=0)
-
-        canvas = FigureCanvasTkAgg(fig, master=newWin)
-        canvas.get_tk_widget().grid(column=0, row=1)
-
-        ax = fig.add_subplot(111)
-        line, = ax.plot(x, np.sin(x))
-        ani = animation.FuncAnimation(fig, animate, np.arange(1, 200), interval=25, blit=False)
-        tk.mainloop()
-
-
-        fig, ax = plt.subplot()
-        ax.set_ylim(0, 10)  # initialize maximum value of the axis
-        ax.set_xlim(0, 10)
-        ani = animation.FuncAnimation(fig, self.run, init_func=self.init, interval=100)  # Interval updating each data point in ms
-        plt.show()
-        """
-        """
-    def run(self,data):
-        xdata, ydata, y1data = [], [], []
-        ax = plt.subplot()
-        t, rand, rand1 = data
-        xdata.append(t)
-        ydata.append(rand)
-        y1data.append(rand1)
-        while(True):
-            print(sc.serialRead())
-        xmin, xmax = ax.get_xlim()
-        if t >= xmax:  # update x-axis
-            ax.set_xlim(xmin + 1, xmax + 1)
-            ax.figure.canvas.draw()
-        # line.set_data(xdata,ydata)
-        ax.plot(xdata, ydata, color="red")
-        ax.plot(xdata, y1data, color="blue")
-        # return line,
-    def init(self):
-        ax = plt.subplot()
-        line, = ax.plot([], [], lw=2)
-        line.set_data([], [])
-        return line,
-    """
-
     def __modeSelect(self):
         """Mode selector between different Heart modes (AOO,AAI,VOO,VVI)
         """
-
         if self.__modeList.get() == "AOO":
             self.__hideParameter(
                 ["readonly", "readonly", "readonly", "disabled", "readonly", "disabled", "disabled", "disabled",
@@ -641,6 +430,7 @@ class DCMWindow(tk.Frame):
     def __saveParameters(self):
         """Exports the sent parameters to an external json file
         """
+        arr = []
         print(self.__entryArr[10]["state"])
         if (self.__entryArr[0].get()) > (self.__entryArr[1].get()):
             print(self.__entryArr[0].get())
@@ -666,8 +456,7 @@ class DCMWindow(tk.Frame):
             write = True
             alt = FileIO(self.__username + self.__currentMode + self.PARAMETERFILE)
             f = alt.readText()
-            arr = []
-            if not (f):
+            if not f:
                 alt.writeText("")
                 f = ""
             for i in range(self.NUMBEROFPARAMETERS):
@@ -675,28 +464,25 @@ class DCMWindow(tk.Frame):
             alt.writeText({"Mode": self.__currentMode})
             for i in range(self.NUMBEROFPARAMETERS):
                 print(self.__entryArr[i]["state"])
-                if (self.__entryArr[i]["state"] == "readonly"):
+                if self.__entryArr[i]["state"] == "readonly":
                     text = {self.PARAMLABELS[i]: self.__entryArr[i].get()}
                     alt.writeText(text)
                     print(text)
             alt1 = FileIO("Usernamemode")
             f = alt1.readText()
-            if not (f):
+            if not f:
                 alt1.writeText("")
                 f = ""
             alt1.writeText({self.__username: self.__currentMode})
             print(self.__entryArr[0].get())
             print(self.__entryArr[10].get())
             print(self.__entryArr[1].get())
-        arr.append((self.MODELABELS.index(self.__currentMode)).to_bytes(1, byteorder='little'))
+            arr.append((self.MODELABELS.index(self.__currentMode)).to_bytes(1, byteorder='little'))
         for i in range(self.NUMBEROFPARAMETERS):
             try:
-                # print(self.__entryArr[i]["state"])
-                # if (self.__entryArr[i]["state"] == "disabled"):
-                #   raise ValueError()
-                if (self.TYPELIST[i] == "8"):
+                if self.TYPELIST[i] == "8":
                     arr.append(int(self.__entryArr[i].get()).to_bytes(1, byteorder='little'))
-                elif (self.TYPELIST[i] == "f"):
+                elif self.TYPELIST[i] == "f":
                     temparr = (bytearray(struct.pack('f', float(self.__entryArr[i].get()))))
                     for item in temparr:
                         val = int(item)
@@ -706,16 +492,16 @@ class DCMWindow(tk.Frame):
                     arr.append(val)
 
             except ValueError:
-                if (str(self.__entryArr[i].get()) in self.ACTIVITYTHRESHOLD):
+                if str(self.__entryArr[i].get()) in self.ACTIVITYTHRESHOLD:
                     val = self.ACTIVITYTHRESHOLDDICT[str(self.__entryArr[i].get())]
                     temparr = bytearray(struct.pack('f', val))
                     for item in temparr:
                         val = int(item)
                         arr.append(val.to_bytes(1, byteorder='little'))
                 else:
-                    if (self.TYPELIST[i] == "8"):
+                    if self.TYPELIST[i] == "8":
                         arr.append(b'\x00')
-                    elif (self.TYPELIST[i] == "f"):
+                    elif self.TYPELIST[i] == "f":
                         arr.append(b'\x00')
                         arr.append(b'\x00')
                         arr.append(b'\x00')
@@ -724,27 +510,25 @@ class DCMWindow(tk.Frame):
                         arr.append(b'\x00')
                         arr.append(b'\x00')
 
-                if (self.__entryArr[i]["state"] == "readonly"):
+                if self.__entryArr[i]["state"] == "readonly":
                     text = {self.PARAMLABELS[i]: self.__entryArr[i].get()}
                     alt.writeText(text)
 
         print(arr)
-        # sc = SerialComm()
         val = b'\x16\x55'
         for item in arr:
             val = val + item
-        # sc.setPort(str(self.__currentPort))
-        # sc.serialWrite(val)
         print(self.__currentPort)
-        #print(val)
         t1_sc = threading.Thread(target=self.serialCommWrite, args=(val,))
         t1_sc.start()
-        # self.serialCommWrite(val)
 
     def serialCommWrite(self, val):
+        """ Opens the serial port and writes to the com port
+        Args:
+            val (bytes): The value being written in bytes
+        """
         global write
         print(type(val))
-        # sc.setPort(str(self.__currentPort))
         print(sc.port)
         sc.serialWrite(val)
         print(val)
@@ -774,9 +558,6 @@ class DCMWindow(tk.Frame):
             self.__modeList.set(data[self.__username])
             alt = FileIO(self.__username + data[self.__username] + self.PARAMETERFILE)
             f = alt.readText()
-            # if not(f):
-            #    alt.writeText("")
-            #    f=""
             for item in self.__entryArr:
                 item.set("")
             for i in range(16):
@@ -794,9 +575,10 @@ class DCMWindow(tk.Frame):
         t2_sc = threading.Thread(target=self.runPort)
         t2_sc.daemon = True
         t2_sc.start()
-        # t2_sc.join(1)
 
     def runPort(self):
+        """ Seperate threaded function to check for serial ports
+        """
         self.__comMode["values"] = SerialComm().getSerialPorts()
 
     def logout(self):
@@ -819,7 +601,6 @@ class DCMWindow(tk.Frame):
         Args:
             higherFrame (tk.Frame): The higher level frame the components are stored in
         """
-        # Initialzing all the parameter boxes
         for i in range(0, self.NUMBEROFPARAMETERS, 4):
             for j in range(4):
                 label = Label(higherFrame, text=self.PARAMLABELS[i + j], bg=self.BACKGROUND_COLOR)
@@ -905,30 +686,10 @@ class ContentWindow(tk.Frame):
         """ The method disables the DCM interface and enables the login window screen, along with formatting
         """
         self.__DCM.pack_forget()
-        # self.__loginWindow.clearVal()
         self.__loginWindow.setPaddingVisible()
         self.__loginWindow.pack()
-
-    def getParent(self):
-        return self.__parent
 
 
 # Main script
 if __name__ == "__main__":
-    ani = animation.FuncAnimation(f, animate, interval=1000)
     run = Run()
-    print(sc.getSerialPorts())
-    sc.setPort(sc.getSerialPorts()[0])
-
-    # sc.serialWrite(b'\x16\x55\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
-    while (True):
-        sc.serialWrite(
-            b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
-
-        try:
-            val, = struct.unpack('d', sc.serialRead())
-            print(val)
-        except Exception:
-            print("None")
-
-    # print(b'\x16\x22\00\x3C\x78\x00\x00\xA0\x40\x00\x00\xA0\x40\x02\x02\xFA\x00\xFA\x00\x00\x00\x80\x40\x00\x00\x80\x40\x64\x02\x0A\x10\xCD\xCC\x8C\x3F\x64\x00')
