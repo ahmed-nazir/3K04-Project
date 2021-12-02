@@ -171,4 +171,4 @@ class SerialComm:
             val = self.__ser.read(16)
             return val
         except Exception:
-            pass
+            return None

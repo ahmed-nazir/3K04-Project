@@ -269,7 +269,7 @@ class DCMWindow(tk.Frame):
         self.__usernameLabel.grid(row=0, column=0, padx=110)
         self.__comMode = ttk.Combobox(self.__topFrame, values=self.SERIALCOMMODE, state="readonly")
         self.__comMode.grid(row=0, column=1, padx=5)
-        self.__comButton = Button(self.__topFrame, text="Connect", bg="red", command=self.checkPort, relief="flat",
+        self.__comButton = Button(self.__topFrame, text="Connect", bg="red", command=self.__checkPort, relief="flat",
                                   padx=20)
         self.__comButton.grid(row=0, column=2, padx=5)
         self.__logoutButton = Button(self.__topFrame, text="Logout", command=self.logout, relief="flat", padx=20)
@@ -332,7 +332,7 @@ class DCMWindow(tk.Frame):
 
                     try:
                         val, = struct.unpack('d', temp[0:8])
-                        if (val > 0.4) and (val < 100):
+                        if (val > 0.4) and (val < 3.5):
                             voltageA.append(val * 3.3)
                             talist.append(time.time() - t)
                     except Exception:
@@ -529,7 +529,6 @@ class DCMWindow(tk.Frame):
         """
         global write
         print(type(val))
-        print(sc.__port)
         sc.serialWrite(val)
         print(val)
         write = False
@@ -567,16 +566,16 @@ class DCMWindow(tk.Frame):
                     self.__entryArr[i].config(state="readonly")
                     self.__entryArr[i].set(list(f.values())[i])
 
-    def checkPort(self):
+    def __checkPort(self):
         """Checks which port is selected
         """
         self.__currentPort = self.__comMode.get()
         sc.setPort(self.__currentPort)
-        t2_sc = threading.Thread(target=self.runPort)
+        t2_sc = threading.Thread(target=self.__runPort)
         t2_sc.daemon = True
         t2_sc.start()
 
-    def runPort(self):
+    def __runPort(self):
         """ Seperate threaded function to check for serial ports
         """
         self.__comMode["values"] = SerialComm().getSerialPorts()
